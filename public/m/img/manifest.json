@@ -30,7 +30,7 @@
       "url": "/m/img/home-wide-1170.webp",
       "w": 1170,
       "h": 1560,
-      "bytes": 314372
+      "bytes": 251974
      }
     }
    }
@@ -539,12 +539,19 @@
     "aspect": 1.9753,
     "bytes": 2554
    },
+   "ny-she": {
+    "url": "/m/img/p-ny-she-155.webp",
+    "w": 155,
+    "h": 118,
+    "aspect": 1.3136,
+    "bytes": 2784
+   },
    "ny-1": {
-    "url": "/m/img/p-ny-1-721.webp",
-    "w": 721,
+    "url": "/m/img/p-ny-1-706.webp",
+    "w": 706,
     "h": 259,
-    "aspect": 2.7838,
-    "bytes": 13770
+    "aspect": 2.7259,
+    "bytes": 11616
    },
    "ny-2": {
     "url": "/m/img/p-ny-2-289.webp",

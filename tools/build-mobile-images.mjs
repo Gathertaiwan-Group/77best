@@ -63,11 +63,12 @@ async function buildBg(id, bg, src, entry, nameOf) {
     const top = await meanColor(cropped, { left: 0, top: 0, width: r.w, height: Math.max(8, Math.round(r.h * 0.04)) });
     const bottom = await meanColor(cropped, { left: 0, top: r.h - Math.max(8, Math.round(r.h * 0.04)), width: r.w, height: Math.max(8, Math.round(r.h * 0.04)) });
     const v = (entry[variant] = { aspect: +(r.w / r.h).toFixed(4), top: hex(top), bottom: hex(bottom), files: {} });
+    const quality = bg.quality?.[variant] ?? QUALITY; // per-variant override (layout.js `bg.quality`)
     for (const width of BG_WIDTHS[variant]) {
       const name = `${nameOf(variant, width)}.webp`;
       const info = await sharp(cropped)
         .resize({ width, kernel: 'lanczos3' })
-        .webp({ quality: QUALITY, effort: 6, smartSubsample: true })
+        .webp({ quality, effort: 6, smartSubsample: true })
         .toFile(join(OUT, name));
       v.files[width] = { url: `/m/img/${name}`, w: info.width, h: info.height, bytes: info.size };
       console.log(`bg  ${name.padEnd(28)} ${info.width}x${info.height} ${kb(info.size)}`);
@@ -134,6 +135,7 @@ for (const [id, p] of Object.entries(SUB.pieces)) {
   const path = join(PUB, url);
   const meta = await sharp(path).metadata();
   let region = { left: 0, top: 0, width: meta.width, height: meta.height };
+  let input = path;
   if (p.words) {
     const ls = subLetters[p.page].filter((l) => p.words.includes(l.word) && l.source === p.src);
     if (ls.length === 0) throw new Error(`piece ${id}: no letters for ${p.words}`);
@@ -142,10 +144,20 @@ for (const [id, p] of Object.entries(SUB.pieces)) {
     const x1 = Math.min(meta.width, Math.ceil(Math.max(...ls.map((l) => l.x + l.w)) - box.x + PAD));
     const y1 = Math.min(meta.height, Math.ceil(Math.max(...ls.map((l) => l.y + l.h)) - box.y + PAD));
     region = { left: x0, top: y0, width: x1 - x0, height: y1 - y0 };
+    // `isolate`: only these words' letters (their own PNGs at their page positions), so a
+    // neighbouring word that reaches into the crop box (text.png overlaps) is left out
+    if (p.isolate) {
+      const layers = ls.map((l) => {
+        const lp = join(PUB, l.url);
+        if (!existsSync(lp)) throw new Error(`piece ${id}: letter ${l.url} missing`);
+        return { input: lp, left: Math.round(l.x - box.x), top: Math.round(l.y - box.y) };
+      });
+      input = await sharp({ create: { width: meta.width, height: meta.height, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } }).composite(layers).png().toBuffer();
+    }
   }
   const width = Math.min(region.width, Math.ceil(p.maxW * 2));
   const name = `${pieceName(id, width)}.webp`;
-  const info = await sharp(path).extract(region).resize({ width, kernel: 'lanczos3' }).webp({ quality: 82, alphaQuality: 90, effort: 6 }).toFile(join(OUT, name));
+  const info = await sharp(input).extract(region).resize({ width, kernel: 'lanczos3' }).webp({ quality: 82, alphaQuality: 90, effort: 6 }).toFile(join(OUT, name));
   manifest.sub.pieces[id] = { url: `/m/img/${name}`, w: info.width, h: info.height, aspect: +(info.width / info.height).toFixed(4), bytes: info.size };
   console.log(`pc  ${name.padEnd(28)} ${info.width}x${info.height} ${kb(info.size)}`);
 }

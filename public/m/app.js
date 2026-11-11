@@ -61,6 +61,9 @@ const CSS = `
 .m77-sub .m77-bg img{opacity:.45;filter:blur(2px) saturate(.9)}
 .m77-back{position:absolute;z-index:2;top:calc(env(safe-area-inset-top,0px) + 8px);left:max(8px,env(safe-area-inset-left,0px));width:56px;height:48px;padding:10px;border:0;background:none;cursor:pointer;touch-action:manipulation}
 .m77-back{outline:none}
+/* Phase 4 QA: keep the arrow readable on the light frames / paper of the sub pages: a soft dark halo */
+.m77-back::before{content:"";position:absolute;inset:5px 3px;border-radius:999px;background:rgba(26,20,14,.6);filter:blur(4px);pointer-events:none}
+.m77-back img{position:relative}
 .m77-back img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 0 4px rgba(22,38,18,.5))}
 .m77-back:focus-visible img{filter:drop-shadow(0 0 6px rgba(255,247,205,.95)) drop-shadow(0 0 2px rgba(255,247,205,.95))}
 .m77-sub .m77-line img{visibility:visible}
@@ -208,7 +211,7 @@ export async function mount(container, opts = {}) {
       wrap.style.width = `min(${o.w}%, ${o.maxW}px)`;
       if (o.rotate) wrap.style.rotate = `${o.rotate}deg`;
       if (o.back) wrap.style.zIndex = '0';
-      const im = el('img', { alt: '', decoding: 'async', width: mo?.w, height: mo?.h, loading: first ? 'eager' : 'lazy' });
+      const im = el('img', { alt: '', decoding: 'async', width: mo?.w, height: mo?.h, loading: first ? 'eager' : 'lazy', fetchpriority: first && o.lcp ? 'high' : null });
       im.dataset.src = mo?.url || `/assets/${o.file}`;
       if (o.filter) im.style.filter = o.filter;
       // sway (flowers) and float (contact clouds / door) are driven by ./fx.js
@@ -286,7 +289,8 @@ export async function mount(container, opts = {}) {
       node = el('div', { class: 'm77-line', 'aria-hidden': 'true' });
       inner = node;
     }
-    if (spec.ink != null) node.style.setProperty('--ink', spec.ink);
+    const ink = line.ink ?? spec.ink; // per line (layout.js `ink`), else per scene
+    if (ink != null) node.style.setProperty('--ink', ink);
     const imgs = all.map((l) => {
       const im = el('img', { alt: '', decoding: 'async', draggable: 'false', 'aria-hidden': 'true' });
       im.dataset.src = l.url;

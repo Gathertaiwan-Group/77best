@@ -33,7 +33,8 @@ const H = 22; // CSS px height of the words on a phone (desktop: 26)
 export const MUSIC_CSS = `
 .m77-music{position:absolute;z-index:9;top:calc(env(safe-area-inset-top,0px) + 4px);right:max(4px,env(safe-area-inset-right,0px));width:calc(var(--mw) + 28px);height:48px;padding:0;margin:0;border:0;background:none;cursor:pointer;touch-action:manipulation;outline:none;opacity:0;transition:opacity .5s ease;-webkit-tap-highlight-color:transparent}
 .m77-music.is-ready{opacity:1}
-.m77-music::after{content:"";position:absolute;inset:4px 2px;border-radius:50%;background:radial-gradient(closest-side,rgba(28,48,30,.32) 20%,rgba(28,48,30,0) 100%);pointer-events:none;z-index:-1}
+/* Phase 4 QA: a soft dark halo (blurred pill) under the words: readable on light paper, frames and clouds */
+.m77-music::after{content:"";position:absolute;inset:9px 5px;border-radius:999px;background:rgba(26,20,14,.6);filter:blur(5px);pointer-events:none;z-index:-1}
 .m77-mwords{position:absolute;left:14px;top:calc(50% - ${H / 2}px);width:var(--mw);height:${H}px;filter:drop-shadow(0 0 3px rgba(25,45,35,.55));transition:transform .2s ease-out}
 .m77-mword{position:absolute;inset:0}
 .m77-mword img{position:absolute;top:0;height:${H}px;max-width:none;pointer-events:none}
@@ -41,8 +42,7 @@ export const MUSIC_CSS = `
 .m77-mword.is-shown{opacity:1}
 .m77-music:active .m77-mwords{transform:scale(1.08)}
 .m77-music:focus-visible .m77-mwords{filter:drop-shadow(0 0 3px rgba(25,45,35,.55)) drop-shadow(0 0 6px rgba(255,247,205,.95))}
-.m77-music:focus-visible::after{background:radial-gradient(closest-side,rgba(255,247,205,.35) 20%,rgba(255,247,205,0) 100%)}
-.m77-subopen .m77-music::after{background:radial-gradient(closest-side,rgba(60,35,30,.4) 20%,rgba(60,35,30,0) 100%)}
+.m77-music:focus-visible::after{background:rgba(26,20,14,.7);box-shadow:0 0 0 3px rgba(255,247,205,.55)}
 `;
 
 export function createMusic(ctx) {

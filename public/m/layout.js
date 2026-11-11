@@ -35,6 +35,8 @@ export const SCENES = [
       tall: { x: 1010, y: 0, w: 726, h: 1452 },
       wide: { x: 830, y: 0, w: 1089, h: 1452 },
       position: '50% 50%',
+      // Phase 4 QA: the tablet crop is the first-screen (LCP) image; q72 = 307KB > 250KB budget
+      quality: { wide: 54 },
     },
     k: 0.25,
     lines: [
@@ -44,7 +46,7 @@ export const SCENES = [
     ],
     objects: [
       { file: 'flowers/white_flower.webp', anchor: 'top-right', x: -6, y: 46, w: 24, maxW: 190, rotate: 8, sway: { amp: 2, period: 5.6 } },
-      { file: 'flowers/yellow.webp', anchor: 'bottom-left', x: -6, y: 22, w: 30, maxW: 230, sway: { amp: 3.2, period: 4.3, origin: '55% 100%' } },
+      { file: 'flowers/yellow.webp', lcp: true, anchor: 'bottom-left', x: -6, y: 22, w: 30, maxW: 230, sway: { amp: 3.2, period: 4.3, origin: '55% 100%' } },
       { file: 'flowers/daisy_bottom.webp', anchor: 'bottom-left', x: 0, y: -3, w: 20, maxW: 150, sway: { amp: 2, period: 7.2, origin: '0% 70%' } },
       { file: 'flowers/peony_bottom.webp', anchor: 'bottom-right', x: 0, y: -2, w: 22, maxW: 170, sway: { amp: 2, period: 6.4, origin: '100% 60%' } },
       { file: 'flowers/rose.webp', anchor: 'bottom-right', x: 12, y: -6, w: 32, maxW: 250, sway: { amp: 2.4, period: 4.9, origin: '50% 100%' } },
@@ -70,7 +72,7 @@ export const SCENES = [
       { words: [{ id: 'about-00', with: ['about-01'] }], x: 50, y: 17, align: 'center', rotate: -6, scale: 1.25 },
       { words: [{ id: 'about-02', turn: 60 }, 'about-03', 'about-04'], x: 10, y: 37, align: 'left', rotate: -3, scale: 1 },
       { words: ['about-05', 'about-06', 'about-07'], x: 92, y: 47, align: 'right', rotate: 2, scale: 1 },
-      { words: ['about-08', 'about-09', { id: 'about-10', with: ['about-11'] }], x: 50, y: 58, align: 'center', rotate: -2, scale: 1, maxW: 92 },
+      { words: ['about-08', 'about-09', { id: 'about-10', with: ['about-11'] }], x: 50, y: 56, align: 'center', rotate: -2, scale: 1, maxW: 92, ink: 0.85 },
     ],
     objects: [],
   },
@@ -115,8 +117,8 @@ export const SCENES = [
       { words: ['contact-05'], x: 50, y: 88, align: 'center', rotate: 2, scale: 1 },
     ],
     objects: [
-      { file: 'elements/cloud1.webp', anchor: 'top-right', x: -36, y: -7, w: 92, maxW: 620, back: true, float: true, filter: 'brightness(0.86) contrast(1.3) saturate(0.84)' },
-      { file: 'elements/cloud2.webp', anchor: 'top-right', x: -30, y: -1, w: 60, maxW: 460, float: true, filter: 'brightness(0.79) contrast(1.8) saturate(0.65)' },
+      { file: 'elements/cloud1.webp', anchor: 'top-right', x: -40, y: -10, w: 92, maxW: 620, back: true, float: true, filter: 'brightness(0.86) contrast(1.3) saturate(0.84)' },
+      { file: 'elements/cloud2.webp', anchor: 'top-right', x: -34, y: -5, w: 60, maxW: 460, float: true, filter: 'brightness(0.79) contrast(1.8) saturate(0.65)' },
       { file: 'elements/exit-door.webp', anchor: 'top-center', x: 0, y: 35, w: 24, maxW: 170, doorFloat: true },
       { file: 'elements/cloud2.webp', anchor: 'top-center', x: 0, y: 51, w: 64, maxW: 460, float: true, filter: 'brightness(0.78) contrast(1.9) saturate(0.64)' },
       { file: 'elements/cloud1.webp', anchor: 'bottom-left', x: -34, y: -6, w: 90, maxW: 600, back: true, float: true, filter: 'brightness(0.86) contrast(1.3) saturate(0.84)' },
@@ -201,7 +203,8 @@ export const SUB = {
     'cq-2': { page: 'chongqing', src: 'static', words: ['w5', 'w6'], maxW: 230 },
     'cq-3': { page: 'chongqing', src: 'static', words: ['w7', 'w8', 'w9'], maxW: 420 },
     'ny-and': { page: 'new-york', src: 'static', words: ['w0'], maxW: 110 },
-    'ny-1': { page: 'new-york', src: 'static', words: ['w1', 'w2', 'w3', 'w4'], maxW: 380 },
+    'ny-she': { page: 'new-york', src: 'static', words: ['w1'], maxW: 90, isolate: true },
+    'ny-1': { page: 'new-york', src: 'static', words: ['w2', 'w3', 'w4'], maxW: 380, isolate: true },
     'ny-2': { page: 'new-york', src: 'static', words: ['w5', 'w6'], maxW: 170 },
     'ny-3': { page: 'new-york', src: 'static', words: ['w9', 'w10'], maxW: 100 },
     'ny-4': { page: 'new-york', src: 'static', words: ['w7', 'w8', 'w11'], maxW: 380 },
@@ -222,7 +225,7 @@ export const SUB = {
       text: 'App: HuHuu. Bedtime audio based on your mood.', // what the hand-written pieces say (screen readers)
       blocks: [
         { piece: 'huhuu-text', w: 68, align: 'left', x: 8, mt: 14, rotate: -2 },
-        { piece: 'huhuu-try', hot: 'try-it', w: 44, align: 'right', x: 10, mt: -6, rotate: 2 },
+        { piece: 'huhuu-try', hot: 'try-it', w: 44, align: 'right', x: 6, mt: 22, rotate: 2 },
       ],
     },
     bedazzling: {
@@ -253,13 +256,14 @@ export const SUB = {
       kind: 'video', bg: 'meadow', easel: 'landscape',
       text: 'Chongqing is where she found her love for documenting.', // what the hand-written pieces say (screen readers)
       // pieces / objects laid over the easel box (% of the easel image)
+      fs: 'left', // the gramophone sits under the canvas' right corner
       over: [
-        { piece: 'cq-title', top: 2.5, right: 0, w: 44, rotate: -3 },
         { object: 'elements/gramophone.webp', bottom: 1, right: -1, w: 23, sway: { amp: 1.5, period: 6.5, origin: '50% 100%' }, ground: true },
       ],
       blocks: [
-        { piece: 'cq-1', w: 60, align: 'left', x: 6, mt: 6, rotate: -4 },
-        { piece: 'cq-2', w: 44, align: 'right', x: 8, mt: 6, rotate: 3 },
+        { piece: 'cq-title', w: 46, align: 'left', x: 4, mt: 10, rotate: -3 },
+        { piece: 'cq-1', w: 60, align: 'left', x: 6, mt: 8, rotate: -4 },
+        { piece: 'cq-2', w: 44, align: 'right', x: 8, mt: 10, rotate: 3 },
         { piece: 'cq-3', w: 80, align: 'center', mt: 14, rotate: -3 },
       ],
     },
@@ -271,10 +275,11 @@ export const SUB = {
       ],
       blocks: [
         { piece: 'ny-and', w: 15, align: 'left', x: 8, mt: 4, rotate: -2 },
-        { piece: 'ny-1', w: 76, align: 'left', x: 4, mt: 6, rotate: 4 },
-        { piece: 'ny-2', w: 34, align: 'right', x: 14, mt: 10, rotate: -2 },
-        { piece: 'ny-3', w: 18, align: 'right', x: 34, mt: 4, rotate: 0 },
-        { piece: 'ny-4', w: 74, align: 'center', mt: 4, rotate: -3 },
+        { piece: 'ny-she', w: 15, align: 'left', x: 22, mt: 2, rotate: -2 },
+        { piece: 'ny-1', w: 76, align: 'left', x: 4, mt: 10, rotate: 4 },
+        { piece: 'ny-2', w: 34, align: 'right', x: 14, mt: 12, rotate: -2 },
+        { piece: 'ny-3', w: 18, align: 'right', x: 34, mt: 6, rotate: 0 },
+        { piece: 'ny-4', w: 74, align: 'center', mt: 16, rotate: -3 },
       ],
     },
   },

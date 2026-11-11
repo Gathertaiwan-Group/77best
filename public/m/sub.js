@@ -32,8 +32,13 @@ export const SUB_CSS = `
 .m77-page .m77-bg img{opacity:1}
 .m77-pscroll{position:absolute;inset:0;overflow-x:hidden;overflow-y:auto;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch;scrollbar-width:none}
 .m77-pscroll::-webkit-scrollbar{display:none}
+.m77-clipx{display:flex;flex-direction:column;min-height:100%;overflow-x:clip}
+.m77-clipx>.m77-col{flex:1 0 auto}
 .m77-col{--u:calc(min(100vw,760px) / 390);position:relative;width:calc(100% - 2 * max(16px,env(safe-area-inset-left,0px)));max-width:720px;margin:0 auto;padding:calc(env(safe-area-inset-top,0px) + 40px) 0 calc(env(safe-area-inset-bottom,0px) + 40px)}
 .m77-page .m77-back{z-index:3}
+/* Phase 4 QA: the hand-written links (try it / credits / join) read as buttons: a soft paint smudge under them */
+.m77-col>.m77-hot.m77-ph .m77-inner::before{content:"";position:absolute;inset:-8% -7%;border-radius:999px;background:rgba(var(--ink-rgb),.34);filter:blur(7px);pointer-events:none}
+.m77-col>.m77-hot.m77-ph .m77-inner>.m77-wipe{position:relative}
 .m77-pc{position:relative;display:block;height:auto;rotate:var(--rot,0deg)}
 .m77-pc>img,.m77-pc .m77-inner>img{display:block;width:100%;height:auto}
 .m77-ink{filter:drop-shadow(0 0 5px rgba(var(--ink-rgb),var(--ink-a,.5))) drop-shadow(0 0 1.5px rgba(var(--ink-rgb),var(--ink-b,.25)))}
@@ -205,6 +210,8 @@ export function createSubpages(ctx) {
     const ink = m.bg === 'curtain' ? '110,62,48' : '22,38,18';
     node.style.setProperty('--ink-rgb', ink);
     if (m.bg === 'curtain') { node.style.setProperty('--ink-a', '.6'); node.style.setProperty('--ink-b', '.45'); }
+    // meadow: white daisies in the (fixed) background pass under the words while scrolling
+    else { node.style.setProperty('--ink-a', '.75'); node.style.setProperty('--ink-b', '.5'); }
     if (bgm) node.style.setProperty('--bgfill', `linear-gradient(180deg, ${bgm.tall.top}, ${bgm.tall.bottom})`);
     const srcset = (variant) => BG_WIDTHS[variant].slice(0, lite ? 1 : undefined).map((w) => `${bgm?.[variant]?.files?.[w]?.url ?? rel(`img/${subBgName(m.bg, variant, w)}.webp`)} ${w}w`).join(', ');
     const bimg = lazyImg({ srcset: srcset('tall'), sizes: '100vw' }, imgs);
@@ -213,11 +220,15 @@ export function createSubpages(ctx) {
     const picture = el('picture', { class: 'm77-bg' }, bsrc, bimg);
     const scroller = el('div', { class: 'm77-pscroll' });
     const col = el('div', { class: 'm77-col' });
-    scroller.append(col);
+    // full-width clip box: glows / objects that reach past the screen edge must not make the page pan sideways
+    scroller.append(el('div', { class: 'm77-clipx' }, col));
     const back = el('button', { class: 'm77-back', type: 'button', 'aria-label': 'back' }, el('img', { alt: '', src: asset(spec.arrow?.file || 'arrow.png') || data.assets['assets/sub/arrow.png'] }));
     on(back, 'click', () => goUp(spec));
     const title = el('h1', { class: 'm77-vh' });
-    node.append(picture, el('div', { class: 'm77-shade', style: { '--shade-top': '.16', '--shade-bottom': '.08' } }), scroller, back, title);
+    const shade = el('div', { class: 'm77-shade', style: { '--shade-top': '.16', '--shade-bottom': '.08' } });
+    // meadow (fixed while the words scroll over it): dim the lower half a little so its white daisies do not compete with the words
+    if (m.bg === 'meadow') shade.style.background = 'linear-gradient(180deg,rgba(0,0,0,.16) 0%,rgba(0,0,0,0) 30%,rgba(10,22,8,.1) 50%,rgba(10,22,8,.3) 100%)';
+    node.append(picture, shade, scroller, back, title);
     layer.append(node);
     const load = () => {
       if (bsrc.dataset.srcset) { bsrc.srcset = bsrc.dataset.srcset; delete bsrc.dataset.srcset; }
@@ -388,7 +399,9 @@ export function createSubpages(ctx) {
       P.tex = timg;
       if (kind === 'landscape') {
         const fs = fullscreenButton(api);
-        Object.assign(fs.style, { top: `calc(${pct((c.y - eo.y + c.h) / eo.h)} + 4px)`, right: pct((eo.x + eo.w - c.x - c.w) / eo.w) });
+        Object.assign(fs.style, { top: `calc(${pct((c.y - eo.y + c.h) / eo.h)} + 4px)` });
+        if (P.m.fs === 'left') fs.style.left = pct((c.x - eo.x) / eo.w);
+        else fs.style.right = pct((eo.x + eo.w - c.x - c.w) / eo.w);
         wrap.append(fs);
       }
     }
