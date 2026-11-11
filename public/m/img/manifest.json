@@ -194,6 +194,363 @@
    "h": 710,
    "aspect": 0.4789,
    "bytes": 17840
+  },
+  "elements/easel-portrait.webp": {
+   "url": "/m/img/easel-portrait-1040.webp",
+   "w": 1040,
+   "h": 1731,
+   "aspect": 0.6008,
+   "bytes": 168422,
+   "srcset": "/m/img/easel-portrait-760.webp 760w, /m/img/easel-portrait-1040.webp 1040w",
+   "small": {
+    "url": "/m/img/easel-portrait-760.webp",
+    "bytes": 77154
+   }
+  },
+  "elements/easel-landscape.webp": {
+   "url": "/m/img/easel-landscape-1440.webp",
+   "w": 1440,
+   "h": 1814,
+   "aspect": 0.7938,
+   "bytes": 204486,
+   "srcset": "/m/img/easel-landscape-760.webp 760w, /m/img/easel-landscape-1440.webp 1440w",
+   "small": {
+    "url": "/m/img/easel-landscape-760.webp",
+    "bytes": 33598
+   }
+  },
+  "elements/teapot.webp": {
+   "url": "/m/img/teapot-560.webp",
+   "w": 560,
+   "h": 441,
+   "aspect": 1.2698,
+   "bytes": 21042
+  },
+  "elements/mailbox.webp": {
+   "url": "/m/img/mailbox-440.webp",
+   "w": 440,
+   "h": 463,
+   "aspect": 0.9503,
+   "bytes": 18424
+  },
+  "elements/candle.webp": {
+   "url": "/m/img/candle-200.webp",
+   "w": 200,
+   "h": 448,
+   "aspect": 0.4464,
+   "bytes": 9214
+  },
+  "elements/balloon.webp": {
+   "url": "/m/img/balloon-360.webp",
+   "w": 360,
+   "h": 477,
+   "aspect": 0.7547,
+   "bytes": 21868
+  },
+  "elements/music-box-2.webp": {
+   "url": "/m/img/music-box-2-450.webp",
+   "w": 450,
+   "h": 456,
+   "aspect": 0.9868,
+   "bytes": 20010
+  },
+  "elements/lantern.webp": {
+   "url": "/m/img/lantern-300.webp",
+   "w": 300,
+   "h": 592,
+   "aspect": 0.5068,
+   "bytes": 26870
+  },
+  "elements/gramophone.webp": {
+   "url": "/m/img/gramophone-340.webp",
+   "w": 340,
+   "h": 502,
+   "aspect": 0.6773,
+   "bytes": 25082
+  },
+  "elements/kite2.webp": {
+   "url": "/m/img/kite2-300.webp",
+   "w": 300,
+   "h": 406,
+   "aspect": 0.7389,
+   "bytes": 10898
+  }
+ },
+ "sub": {
+  "bg": {
+   "curtain": {
+    "tall": {
+     "aspect": 0.5,
+     "top": "#bda28d",
+     "bottom": "#d4ad9b",
+     "files": {
+      "780": {
+       "url": "/m/img/sub-curtain-tall-780.webp",
+       "w": 780,
+       "h": 1560,
+       "bytes": 20316
+      },
+      "1170": {
+       "url": "/m/img/sub-curtain-tall-1170.webp",
+       "w": 1170,
+       "h": 2340,
+       "bytes": 33886
+      }
+     }
+    },
+    "wide": {
+     "aspect": 0.75,
+     "top": "#bba995",
+     "bottom": "#d5b3a1",
+     "files": {
+      "1170": {
+       "url": "/m/img/sub-curtain-wide-1170.webp",
+       "w": 1170,
+       "h": 1560,
+       "bytes": 27390
+      }
+     }
+    }
+   },
+   "meadow": {
+    "tall": {
+     "aspect": 0.5,
+     "top": "#233c19",
+     "bottom": "#446325",
+     "files": {
+      "780": {
+       "url": "/m/img/sub-meadow-tall-780.webp",
+       "w": 780,
+       "h": 1560,
+       "bytes": 288416
+      },
+      "1170": {
+       "url": "/m/img/sub-meadow-tall-1170.webp",
+       "w": 1170,
+       "h": 2340,
+       "bytes": 422820
+      }
+     }
+    },
+    "wide": {
+     "aspect": 0.75,
+     "top": "#1e3716",
+     "bottom": "#36531f",
+     "files": {
+      "1170": {
+       "url": "/m/img/sub-meadow-wide-1170.webp",
+       "w": 1170,
+       "h": 1560,
+       "bytes": 447682
+      }
+     }
+    }
+   }
+  },
+  "pieces": {
+   "work-hackathon": {
+    "url": "/m/img/p-work-hackathon-474.webp",
+    "w": 474,
+    "h": 565,
+    "aspect": 0.8389,
+    "bytes": 14444
+   },
+   "work-huhuu": {
+    "url": "/m/img/p-work-huhuu-273.webp",
+    "w": 273,
+    "h": 576,
+    "aspect": 0.474,
+    "bytes": 8914
+   },
+   "work-bedazzling": {
+    "url": "/m/img/p-work-bedazzling-452.webp",
+    "w": 452,
+    "h": 227,
+    "aspect": 1.9912,
+    "bytes": 9268
+   },
+   "work-mist-story": {
+    "url": "/m/img/p-work-mist-story-407.webp",
+    "w": 407,
+    "h": 153,
+    "aspect": 2.6601,
+    "bytes": 5950
+   },
+   "work-dream-gallery": {
+    "url": "/m/img/p-work-dream-gallery-362.webp",
+    "w": 362,
+    "h": 546,
+    "aspect": 0.663,
+    "bytes": 11440
+   },
+   "about-from": {
+    "url": "/m/img/p-about-from-220.webp",
+    "w": 220,
+    "h": 104,
+    "aspect": 2.1154,
+    "bytes": 3912
+   },
+   "about-to": {
+    "url": "/m/img/p-about-to-140.webp",
+    "w": 140,
+    "h": 125,
+    "aspect": 1.12,
+    "bytes": 2912
+   },
+   "about-chongqing": {
+    "url": "/m/img/p-about-chongqing-743.webp",
+    "w": 743,
+    "h": 221,
+    "aspect": 3.362,
+    "bytes": 15538
+   },
+   "about-new-york": {
+    "url": "/m/img/p-about-new-york-579.webp",
+    "w": 579,
+    "h": 310,
+    "aspect": 1.8677,
+    "bytes": 10606
+   },
+   "hackathon-title": {
+    "url": "/m/img/p-hackathon-title-1120.webp",
+    "w": 1120,
+    "h": 136,
+    "aspect": 8.2353,
+    "bytes": 22418
+   },
+   "hackathon-credits": {
+    "url": "/m/img/p-hackathon-credits-660.webp",
+    "w": 660,
+    "h": 305,
+    "aspect": 2.1639,
+    "bytes": 22614
+   },
+   "huhuu-text": {
+    "url": "/m/img/p-huhuu-text-821.webp",
+    "w": 821,
+    "h": 684,
+    "aspect": 1.2003,
+    "bytes": 34650
+   },
+   "huhuu-try": {
+    "url": "/m/img/p-huhuu-try-460.webp",
+    "w": 460,
+    "h": 129,
+    "aspect": 3.5659,
+    "bytes": 7682
+   },
+   "bedazzling-text": {
+    "url": "/m/img/p-bedazzling-text-739.webp",
+    "w": 739,
+    "h": 386,
+    "aspect": 1.9145,
+    "bytes": 27104
+   },
+   "bedazzling-try": {
+    "url": "/m/img/p-bedazzling-try-520.webp",
+    "w": 520,
+    "h": 152,
+    "aspect": 3.4211,
+    "bytes": 9340
+   },
+   "mist-story-text": {
+    "url": "/m/img/p-mist-story-text-722.webp",
+    "w": 722,
+    "h": 305,
+    "aspect": 2.3672,
+    "bytes": 21168
+   },
+   "mist-story-try": {
+    "url": "/m/img/p-mist-story-try-520.webp",
+    "w": 520,
+    "h": 153,
+    "aspect": 3.3987,
+    "bytes": 9298
+   },
+   "dream-title": {
+    "url": "/m/img/p-dream-title-595.webp",
+    "w": 595,
+    "h": 397,
+    "aspect": 1.4987,
+    "bytes": 24210
+   },
+   "dream-soon": {
+    "url": "/m/img/p-dream-soon-499.webp",
+    "w": 499,
+    "h": 287,
+    "aspect": 1.7387,
+    "bytes": 22754
+   },
+   "dream-join": {
+    "url": "/m/img/p-dream-join-372.webp",
+    "w": 372,
+    "h": 397,
+    "aspect": 0.937,
+    "bytes": 12474
+   },
+   "cq-title": {
+    "url": "/m/img/p-cq-title-607.webp",
+    "w": 607,
+    "h": 144,
+    "aspect": 4.2153,
+    "bytes": 10730
+   },
+   "cq-1": {
+    "url": "/m/img/p-cq-1-546.webp",
+    "w": 546,
+    "h": 259,
+    "aspect": 2.1081,
+    "bytes": 7422
+   },
+   "cq-2": {
+    "url": "/m/img/p-cq-2-410.webp",
+    "w": 410,
+    "h": 174,
+    "aspect": 2.3563,
+    "bytes": 5694
+   },
+   "cq-3": {
+    "url": "/m/img/p-cq-3-830.webp",
+    "w": 830,
+    "h": 177,
+    "aspect": 4.6893,
+    "bytes": 10900
+   },
+   "ny-and": {
+    "url": "/m/img/p-ny-and-160.webp",
+    "w": 160,
+    "h": 81,
+    "aspect": 1.9753,
+    "bytes": 2554
+   },
+   "ny-1": {
+    "url": "/m/img/p-ny-1-721.webp",
+    "w": 721,
+    "h": 259,
+    "aspect": 2.7838,
+    "bytes": 13770
+   },
+   "ny-2": {
+    "url": "/m/img/p-ny-2-289.webp",
+    "w": 289,
+    "h": 209,
+    "aspect": 1.3828,
+    "bytes": 6194
+   },
+   "ny-3": {
+    "url": "/m/img/p-ny-3-192.webp",
+    "w": 192,
+    "h": 211,
+    "aspect": 0.91,
+    "bytes": 3872
+   },
+   "ny-4": {
+    "url": "/m/img/p-ny-4-602.webp",
+    "w": 602,
+    "h": 195,
+    "aspect": 3.0872,
+    "bytes": 12412
+   }
   }
  }
 }

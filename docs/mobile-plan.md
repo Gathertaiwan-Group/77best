@@ -242,10 +242,28 @@ aspect = innerWidth / innerHeight
 - work 總覽、about 總覽、6 個影片子頁、dream-gallery。返回箭頭，瀏覽器上一頁。
 - 影片手機版轉檔（業主同意之後）。
 - **驗收**
-  - [ ] 9 個子頁路由，直接開深連結（例：`/#/work/huhuu`）都能正確顯示。
-  - [ ] iOS Safari 真機：每支影片點擊後 inline 播放，不會自動跳全螢幕；橫式影片的「全螢幕」按鈕可用；離開子頁影片會停。
-  - [ ] Android Chrome 真機：同上，加上系統返回鍵回到上一層。
-  - [ ] 子頁所有熱區 ≥ 44×44pt（自動檢查 bounding box）。
+  - [x] 9 個子頁路由，直接開深連結（例：`/#/work/huhuu`）都能正確顯示。**（2026-11-11 自動驗證，Playwright＋系統 Chrome，390×844／375×667／820×1180 各 9 條路由：深連結開對頁、底下主頁停在對應段落、返回箭頭回 parent、站內點擊→`history.back()`／`forward()` 正確，皆通過）**
+  - [ ] iOS Safari 真機：每支影片點擊後 inline 播放，不會自動跳全螢幕；橫式影片的「全螢幕」按鈕可用；離開子頁影片會停。**（真機未測；headless Chrome 已驗：6 支影片點擊後 `paused=false`、`currentTime` 前進、沒有進入全螢幕、`playsinline`／`preload=none`／poster 正確、再點暫停、離開子頁 `paused=true` 且釋放 src、捲出視窗與切到背景會暫停、橫式「full screen」鈕 123×44 可進出全螢幕；`webkitEnterFullscreen` 分支只能真機驗）**
+  - [ ] Android Chrome 真機：同上，加上系統返回鍵回到上一層。**（真機未測；`history.back()` 路徑已自動驗證）**
+  - [x] 子頁所有熱區 ≥ 44×44pt（自動檢查 bounding box）。**（自動驗證：3 種尺寸 × 9 頁，當前頁所有 `a`/`button` 都 ≥44×44）**
+  - [x] 補充自動驗證：零 console error、零 HTTP ≥400；只請求 `/m/video/*.mp4`（原 `/videos/*.mp4` 0 次）；Save-Data 時 poster 顯示「tap to load」且點擊前 0 個 mp4 請求；減少動態效果時 work 總覽直接顯示、不漂浮；Phase 1 回歸（`verify` 11 項＋`test-engine` 38 項）全過，首屏傳輸 468KB（手機）／571KB（820 平板），仍在 600KB 內。
+
+**Phase 2 實作紀錄（分支 `mobile-v1`）**
+- 程式：`public/m/sub.js`（子頁、影片、路由；第一次進子頁或首屏後閒置時才 `import()`，不佔首屏預算）。`app.js` 只留路由掛鉤。版面表在 `layout.js` 的 `SUB`（背景裁切、物件尺寸、手寫圖裁切 `pieces`、各頁 blocks）。
+- 手寫字：直接用桌面版的合成圖（`text.png`、`credits/try-it/join-event`、work／about 標籤），散開的句子（Chongqing、New York、about、dream-gallery）依 `tools/sub-letters.json`（`extract-data.mjs` 從 bundle 抽出的子頁字母座標）按詞裁成數塊重新排。work 總覽每組「物件＋標籤」保留桌面版相對位置（物件旋轉以左上角為軸，同桌面），整組等比縮放；平板 ≥768 改兩欄交錯。
+- 影片：畫架與畫框位置取自 `data.json` 子頁表（`canvas` 相對 `easel`，內縮 `sub.video.inset`、紙紋 `sub.video.texture` 以 multiply 疊在影片上，同桌面）。對外事件 `window` 上的 `m:video-play`／`m:video-pause`（`detail: { id, video }`），Phase 3 音樂閃避用。離開子頁會 pause 並釋放 src；捲出視窗（<30%）或切背景會 pause；全螢幕中不因 IO 暫停。全螢幕：iPhone 用 `video.webkitEnterFullscreen()`，其他 `video.requestFullscreen()`（進入時開 native controls、嘗試鎖橫向，退出時還原）。
+- 返回：箭頭回 `parent`；若上一筆歷史就是 parent 用 `history.back()`，否則推入 parent（深連結進來時）。不攔橫滑。
+- 手機版影片（`public/m/video/`，原檔未動；H.264 High、CRF 26、maxrate 1.2M、AAC 96k、faststart）：
+
+  | 影片 | 原檔 | 手機版 | 解析度 |
+  |---|---|---|---|
+  | hackathon | 22.2MB | 10.4MB | 540×960 |
+  | huhuu | 29.1MB | 9.0MB | 540×960 |
+  | bedazzling | 2.4MB | 0.78MB | 540×960 |
+  | mistStory | 1.7MB | 0.61MB | 540×960 |
+  | chongqing | 5.9MB | 1.86MB | 960×540 |
+  | newYork | 8.8MB | 2.70MB | 960×540 |
+  | 合計 | 70.1MB | 25.4MB | |
 
 ### Phase 3：動效、音樂、無障礙（2–3 人日）
 - 花朵擺動、觸點光斑、漣漪/pollen、雲漂浮、場景進出的 scatter。

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // Extracts the data tables of the desktop bundle (public/assets/main-*.js) into
-// public/m/data.json for the portrait mobile module. Standard library only.
+// public/m/data.json for the portrait mobile module (and the sub-page letter table
+// tools/sub-letters.json, used only by build-mobile-images.mjs). Standard library only.
 //
 // Robustness: object literals are located by stable *content* signatures (not by
 // minified variable names), cut out with a JS-aware brace matcher, and evaluated
@@ -15,6 +16,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const PUB = join(ROOT, 'public');
 const ASSETS = join(PUB, 'assets');
 const OUT = join(PUB, 'm', 'data.json');
+const SUB_OUT = join(ROOT, 'tools', 'sub-letters.json');
 
 const mainFile = readdirSync(ASSETS).find((f) => /^main-[\w-]+\.js$/.test(f));
 if (!mainFile) throw new Error('public/assets/main-*.js not found');
@@ -89,6 +91,8 @@ const stage = grab('stage', '{design_width:');
 const letterTable = grab('letters', '{note:`canvas coords');
 const subpages = grab('subpages', '{note:`page coords (2912');
 const contactObjects = grab('contactObjects', '{note:`page coords, back to front`');
+// sub-page letters (page coords, same space as subpages.pages[*]); `source` = 'static' (text.png) or a hot id
+const subLetterTable = grab('subLetters', '{note:`page coords; seq = typing order`');
 
 // webp rule of the desktop app:  Uo = e => `/assets/${e minus assets/ prefix, .png -> .webp}`
 const webp = (p) => `/assets/${p.replace(/^\/?(assets\/)?/, '').replace(/\.png$/i, '.webp')}`;
@@ -107,6 +111,14 @@ for (const l of letters) {
   if (l.keyword) w.keyword = l.keyword;
   if (l.link) w.link = l.link;
   if (l.group) w.group = l.group;
+}
+const subLetters = {};
+for (const [page, ls] of Object.entries(subLetterTable.pages)) {
+  subLetters[page] = ls.map((l) => {
+    const url = assets[`assets/sub-letters/${l.file}`];
+    if (!url) throw new Error(`sub letter ${l.file} has no hashed asset`);
+    return { ...l, url };
+  });
 }
 const name = letters.find((l) => l.page === 'main' && /^main-02-/.test(l.word))?.text ?? null;
 
@@ -131,6 +143,10 @@ const data = {
 
 mkdirSync(dirname(OUT), { recursive: true });
 writeFileSync(OUT, JSON.stringify(data));
+// sub-page letters are only needed at build time (crops of the hand-written composites),
+// so they stay out of the runtime data.json
+writeFileSync(SUB_OUT, JSON.stringify({ generatedFrom: mainFile, note: 'page coords, same space as data.json subpages.pages[*]', pages: subLetters }));
 console.log(`extract-data: ${mainFile} -> ${OUT.replace(ROOT + '/', '')}`);
 console.log(`  name=${name} letters=${letters.length} words=${Object.keys(words).length} assets=${Object.keys(assets).length}`);
+console.log(`  subLetters=${Object.entries(subLetters).map(([p, l]) => `${p}:${l.length}`).join(',')}`);
 console.log(`  links=${Object.keys(config.links).join(',')} subpages=${Object.keys(subpages.pages).join(',')}`);

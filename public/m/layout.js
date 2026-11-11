@@ -128,3 +128,143 @@ export const BG_WIDTHS = { tall: [780, 1170], wide: [1170] };
 /** Output name of an object image, sized for its largest CSS width × 2. */
 export const objName = (file, width) => `${file.replace(/^.*\//, '').replace(/\.\w+$/, '')}-${width}`;
 export const objWidth = (o, origW) => Math.min(origW, Math.ceil(o.maxW * 2));
+
+/* ------------------------------------------------------------------ sub pages
+ * Phase 2: the overview pages (#/about, #/work) and the detail pages
+ * (#/work/<id>, #/about/<id>). Routes, parents, objects, easel canvases and
+ * links come from data.json (`subpages`); this table only holds the portrait
+ * arrangement.
+ *
+ *  - bg: portrait crops of the desktop sub-page backgrounds (source px), built
+ *    like the scene backgrounds into /m/img/sub-{name}-{tall|wide}-{w}.webp.
+ *  - objects: desktop element images used by sub pages → largest CSS width (px);
+ *    the builder writes them at ×2.
+ *  - pieces: crops of the desktop hand-written composites (text.png, the hot
+ *    labels). `src` = 'static' (the page's text.png) or a hot id; `words` (ids
+ *    from tools/sub-letters.json) limits the crop to those words' bounding box.
+ *    maxW = largest CSS width (px) the piece is shown at (output = ×2).
+ *  - pages: blocks in reading order. w = % of the content column, x = inset (%)
+ *    from the aligned side, mt = margin-top (px at 390 wide, scales with width),
+ *    rotate in deg. `hot` makes the piece the page's link (data `link` / `route`).
+ */
+export const SUB = {
+  bg: {
+    curtain: { src: 'bg/curtain.webp', tall: { x: 1000, y: 0, w: 816, h: 1632 }, wide: { x: 800, y: 0, w: 1224, h: 1632 } },
+    meadow: { src: 'bg/meadow.webp', tall: { x: 260, y: 0, w: 816, h: 1632 }, wide: { x: 120, y: 0, w: 1224, h: 1632 } },
+  },
+  objects: {
+    'elements/easel-portrait.webp': 520,
+    'elements/easel-landscape.webp': 720,
+    'elements/teapot.webp': 280,
+    'elements/mailbox.webp': 220,
+    'elements/candle.webp': 100,
+    'elements/balloon.webp': 180,
+    'elements/music-box-2.webp': 225,
+    'elements/lantern.webp': 150,
+    'elements/gramophone.webp': 170,
+    'elements/kite2.webp': 150,
+    'elements/cloud2.webp': 460,
+  },
+  pieces: {
+    // work overview labels (whole hot composites)
+    'work-hackathon': { page: 'work', src: 'hackathon', maxW: 295 },
+    'work-huhuu': { page: 'work', src: 'huhuu', maxW: 170 },
+    'work-bedazzling': { page: 'work', src: 'bedazzling', maxW: 280 },
+    'work-mist-story': { page: 'work', src: 'mist-story', maxW: 255 },
+    'work-dream-gallery': { page: 'work', src: 'dream-gallery', maxW: 225 },
+    // about overview
+    'about-from': { page: 'about', src: 'static', words: ['w0'], maxW: 110 },
+    'about-to': { page: 'about', src: 'static', words: ['w2'], maxW: 70 },
+    'about-chongqing': { page: 'about', src: 'chongqing', maxW: 400 },
+    'about-new-york': { page: 'about', src: 'new-york', maxW: 330 },
+    // portrait video pages
+    'hackathon-title': { page: 'hackathon', src: 'static', maxW: 560 },
+    'hackathon-credits': { page: 'hackathon', src: 'credits', maxW: 330 },
+    'huhuu-text': { page: 'huhuu', src: 'static', maxW: 440 },
+    'huhuu-try': { page: 'huhuu', src: 'try-it', maxW: 230 },
+    'bedazzling-text': { page: 'bedazzling', src: 'static', maxW: 420 },
+    'bedazzling-try': { page: 'bedazzling', src: 'try-it', maxW: 260 },
+    'mist-story-text': { page: 'mist-story', src: 'static', maxW: 420 },
+    'mist-story-try': { page: 'mist-story', src: 'try-it', maxW: 260 },
+    'dream-title': { page: 'dream-gallery', src: 'static', words: ['w0', 'w1'], maxW: 300 },
+    'dream-soon': { page: 'dream-gallery', src: 'static', words: ['w2', 'w3'], maxW: 260 },
+    'dream-join': { page: 'dream-gallery', src: 'join-event', maxW: 200 },
+    // landscape video pages
+    'cq-title': { page: 'chongqing', src: 'static', words: ['w0'], maxW: 330 },
+    'cq-1': { page: 'chongqing', src: 'static', words: ['w1', 'w2', 'w3', 'w4'], maxW: 290 },
+    'cq-2': { page: 'chongqing', src: 'static', words: ['w5', 'w6'], maxW: 230 },
+    'cq-3': { page: 'chongqing', src: 'static', words: ['w7', 'w8', 'w9'], maxW: 420 },
+    'ny-and': { page: 'new-york', src: 'static', words: ['w0'], maxW: 110 },
+    'ny-1': { page: 'new-york', src: 'static', words: ['w1', 'w2', 'w3', 'w4'], maxW: 380 },
+    'ny-2': { page: 'new-york', src: 'static', words: ['w5', 'w6'], maxW: 170 },
+    'ny-3': { page: 'new-york', src: 'static', words: ['w9', 'w10'], maxW: 100 },
+    'ny-4': { page: 'new-york', src: 'static', words: ['w7', 'w8', 'w11'], maxW: 380 },
+  },
+  pages: {
+    about: { kind: 'about', bg: 'meadow' },
+    work: { kind: 'work', bg: 'curtain' },
+    hackathon: {
+      kind: 'video', bg: 'curtain', easel: 'portrait',
+      blocks: [
+        { piece: 'hackathon-title', w: 90, align: 'center', mt: 14, rotate: -2 },
+        { piece: 'hackathon-credits', hot: 'credits', w: 60, align: 'center', mt: 14, rotate: 1 },
+      ],
+    },
+    huhuu: {
+      kind: 'video', bg: 'curtain', easel: 'portrait',
+      blocks: [
+        { piece: 'huhuu-text', w: 68, align: 'left', x: 8, mt: 14, rotate: -2 },
+        { piece: 'huhuu-try', hot: 'try-it', w: 44, align: 'right', x: 10, mt: -6, rotate: 2 },
+      ],
+    },
+    bedazzling: {
+      kind: 'video', bg: 'curtain', easel: 'portrait',
+      blocks: [
+        { piece: 'bedazzling-text', w: 74, align: 'left', x: 6, mt: 14, rotate: -2 },
+        { piece: 'bedazzling-try', hot: 'try-it', w: 54, align: 'right', x: 6, mt: 16, rotate: 2 },
+      ],
+    },
+    'mist-story': {
+      kind: 'video', bg: 'curtain', easel: 'portrait',
+      blocks: [
+        { piece: 'mist-story-text', w: 74, align: 'left', x: 6, mt: 14, rotate: -2 },
+        { piece: 'mist-story-try', hot: 'try-it', w: 54, align: 'right', x: 6, mt: 16, rotate: 2 },
+      ],
+    },
+    'dream-gallery': {
+      kind: 'video', bg: 'curtain', easel: 'portrait', onCanvas: { piece: 'dream-soon', w: 62 },
+      blocks: [
+        { piece: 'dream-title', w: 50, align: 'left', x: 6, mt: 10, rotate: -3 },
+        { piece: 'dream-join', hot: 'join-event', w: 34, align: 'right', x: 4, mt: -96, rotate: 3 },
+      ],
+    },
+    chongqing: {
+      kind: 'video', bg: 'meadow', easel: 'landscape',
+      // pieces / objects laid over the easel box (% of the easel image)
+      over: [
+        { piece: 'cq-title', top: 2.5, right: 0, w: 44, rotate: -3 },
+        { object: 'elements/gramophone.webp', bottom: 1, right: -1, w: 23, sway: { amp: 1.5, period: 6.5, origin: '50% 100%' }, ground: true },
+      ],
+      blocks: [
+        { piece: 'cq-1', w: 60, align: 'left', x: 6, mt: 6, rotate: -4 },
+        { piece: 'cq-2', w: 44, align: 'right', x: 8, mt: 6, rotate: 3 },
+        { piece: 'cq-3', w: 80, align: 'center', mt: 14, rotate: -3 },
+      ],
+    },
+    'new-york': {
+      kind: 'video', bg: 'meadow', easel: 'landscape',
+      over: [
+        { object: 'elements/kite2.webp', top: 2, right: 3, w: 19, rotate: 92.2, flip: true, float: true },
+      ],
+      blocks: [
+        { piece: 'ny-and', w: 15, align: 'left', x: 8, mt: 4, rotate: -2 },
+        { piece: 'ny-1', w: 76, align: 'left', x: 4, mt: 6, rotate: 4 },
+        { piece: 'ny-2', w: 34, align: 'right', x: 14, mt: 10, rotate: -2 },
+        { piece: 'ny-3', w: 18, align: 'right', x: 34, mt: 4, rotate: 0 },
+        { piece: 'ny-4', w: 74, align: 'center', mt: 4, rotate: -3 },
+      ],
+    },
+  },
+};
+export const subBgName = (name, variant, width) => `sub-${name}-${variant}-${width}`;
+export const pieceName = (id, width) => `p-${id}-${width}`;

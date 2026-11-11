@@ -11,7 +11,7 @@
 // and /m/img/manifest.json (tools/build-mobile-images.mjs); layout from ./layout.js.
 
 import { SCENES, BG_WIDTHS, bgName, CONTENT_MAX } from './layout.js';
-import { groupLetters, layoutScene, layoutLine, sceneScale } from './engine.js';
+import { groupLetters, layoutScene } from './engine.js';
 
 const BASE = new URL('./', import.meta.url);
 const rel = (p) => new URL(p, BASE).href;
@@ -150,8 +150,17 @@ export async function mount(container, opts = {}) {
 
   /* ---------- build scenes */
   const scenes = SCENES.map((spec, index) => buildScene(spec, index));
-  const routeOverlay = buildOverlay();
-  root.append(routeOverlay.node);
+  // sub pages live in ./sub.js, loaded on the first sub route (deep link / tap) or when idle
+  const firstHash = location.hash;
+  let subs = null, subsP = null;
+  const getSubs = () => (subsP ||= import('./sub.js').then(({ createSubpages, SUB_CSS }) => {
+    const st = el('style', { 'data-m77': 'sub' });
+    st.textContent = SUB_CSS;
+    document.head.append(st);
+    cleanups.push(() => st.remove());
+    subs = createSubpages({ data, manifest, root, el, on, rel, still, saveData, hoverCfg, rgbMix, seed: [firstHash] });
+    return subs;
+  }));
 
   function buildScene(spec, index) {
     const m = manifest?.bg?.[spec.id];
@@ -320,7 +329,7 @@ export async function mount(container, opts = {}) {
         e.preventDefault();
         press();
         const target = node.getAttribute('href');
-        setTimeout(() => { navigatedInside = true; location.hash = target; release(); }, 120);
+        setTimeout(() => { location.hash = target; release(); }, 120);
       });
     } else {
       on(node, 'click', () => { press(); release(); });
@@ -336,7 +345,7 @@ export async function mount(container, opts = {}) {
       const placed = layoutScene(s.spec, byKey, box);
       placed.forEach((p, i) => placeLine(s.lines[i], p));
     }
-    routeOverlay.layout(box);
+    subs?.layout();
   }
 
   function placeLine(L, placed) {
@@ -427,7 +436,7 @@ export async function mount(container, opts = {}) {
   const firstBg = scenes[0].img;
   Promise.all([firstBg, ...scenes[0].lines.flatMap((l) => l.imgs)].map((im) => (im.complete && im.naturalWidth ? null : im.decode().catch(() => null))))
     .then(() => performance.mark?.('m77-first-screen'));
-  const afterFirst = () => setTimeout(() => (window.requestIdleCallback || setTimeout)(startPrefetch), 300);
+  const afterFirst = () => setTimeout(() => (window.requestIdleCallback || setTimeout)(() => { startPrefetch(); if (!saveData()) setTimeout(getSubs, 1500); }), 300);
   if (firstBg.complete && firstBg.naturalWidth) afterFirst();
   else { firstBg.addEventListener('load', afterFirst, { once: true }); firstBg.addEventListener('error', afterFirst, { once: true }); }
 
@@ -439,68 +448,20 @@ export async function mount(container, opts = {}) {
     scroller.scrollTo({ top: n * sceneHeight(), behavior: still ? 'auto' : 'smooth' });
   }
 
-  /* ---------- sub-route placeholder (#/about, #/work …; Phase 2 replaces this) */
-  let navigatedInside = false;
-  function buildOverlay() {
-    const node = el('div', { class: 'm77-sub', role: 'dialog', 'aria-modal': 'true', 'aria-hidden': 'true' });
-    const bg = el('picture', { class: 'm77-bg' }, el('img', { alt: '' }));
-    const back = el('button', { class: 'm77-back', type: 'button', 'aria-label': 'back' }, el('img', { alt: '', src: data.assets['assets/sub/arrow.png'] }));
-    const box = el('div', { class: 'm77-box' });
-    const title = el('h2', { class: 'm77-vh' });
-    node.append(bg, back, title, box);
-    let current = null, Lcur = null;
-    on(back, 'click', () => {
-      if (navigatedInside && history.length > 1) history.back();
-      else location.hash = '#/';
-    });
-    const sceneFor = { about: 'about', work: 'work' };
-    function open(section) {
-      const spec = SCENES.find((s) => s.id === sceneFor[section]);
-      const hotKey = spec.lines.find((l) => l.words.some((w) => (byKey.get(typeof w === 'string' ? w : w.id) || []).some((x) => x.keyword)));
-      current = { spec, line: { ...hotKey, x: 50, y: 42, align: 'center', scale: (hotKey.scale || 1) * 1.6, rotate: -3 } };
-      box.textContent = '';
-      Lcur = buildStaticLine(current.line);
-      box.append(Lcur.node);
-      const s = scenes.find((x) => x.spec === spec);
-      s.load();
-      bg.querySelector('img').src = s.img.currentSrc || s.img.src || '';
-      bg.querySelector('img').classList.add('is-in');
-      node.style.setProperty('--theme', spec.theme);
-      title.textContent = `${section} (coming soon)`;
-      node.classList.add('is-open');
-      node.setAttribute('aria-hidden', 'false');
-      layout({ w: scenes[0].box.clientWidth, h: scenes[0].box.clientHeight });
-      setTimeout(() => back.focus({ preventScroll: true }), 50);
+  /* ---------- sub pages (#/about, #/work, #/work/<id>, #/about/<id>) — see sub.js */
+  const SUB_RE = /^#\/(about|work)(\/|$)/;
+  async function route() {
+    if (!subs && !SUB_RE.test(location.hash)) return; // main page, sub pages never opened
+    const S = await getSubs();
+    const id = S.route(location.hash);
+    // keep the main page under a sub page on its section, so "back" lands there
+    const section = id ? S.sectionOf(location.hash) : null;
+    if (section) {
+      const i = scenes.findIndex((s) => s.spec.id === section);
+      if (i >= 0 && current() !== i) { scroller.scrollTop = i * sceneHeight(); lastIdx = i; }
     }
-    function close() {
-      node.classList.remove('is-open');
-      node.setAttribute('aria-hidden', 'true');
-      current = null;
-    }
-    function layout(b) {
-      if (!current || !Lcur || !b.w) return;
-      const k = sceneScale(current.spec, b);
-      const placed = layoutLine(current.line, byKey, b, k);
-      placeLine(Lcur, placed);
-    }
-    function buildStaticLine(line) {
-      const ids = line.words.flatMap((w) => (typeof w === 'string' ? [w] : [w.id, ...(w.with || [])]));
-      const all = ids.flatMap((k) => byKey.get(k) || []);
-      const node = el('div', { class: 'm77-line', 'aria-hidden': 'true' });
-      const imgs = all.map((l) => el('img', { alt: '', src: l.url, decoding: 'async' }));
-      node.append(...imgs);
-      return { node, imgs, imgByLetter: new Map(all.map((l, i) => [l, imgs[i]])), hot: false };
-    }
-    return { node, open, close, layout };
-  }
-
-  function route() {
-    const m = location.hash.match(/^#\/(about|work)(\/|$)/);
-    if (m) routeOverlay.open(m[1]);
-    else routeOverlay.close();
   }
   on(window, 'hashchange', route);
-  on(window, 'keydown', (e) => { if (e.key === 'Escape' && /^#\/(about|work)/.test(location.hash)) location.hash = '#/'; });
 
   /* ---------- resize */
   let rt = 0, lastIdx = 0;
@@ -522,6 +483,8 @@ export async function mount(container, opts = {}) {
     scenes: scenes.map((s) => s.node),
     goTo,
     relayout: layoutAll,
+    get subs() { return subs; },
+    loadSubs: getSubs,
     destroy() {
       cleanups.forEach((f) => f());
       root.remove();
