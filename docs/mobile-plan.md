@@ -247,6 +247,7 @@ aspect = innerWidth / innerHeight
 - `prefers-reduced-motion`、Save-Data 分支，WebGL 條件開啟和自動降級。
 - **驗收**
   - [ ] iPhone 真機：音樂淡入（錄影確認不是瞬間全音量）；播放影片時音樂閃避；切到背景時淡出。
+    - 主程式音量 patch（2026-11-11）：音樂與子頁影片的音量已改走 Web Audio GainNode（不支援時退回 `.volume`）。已自動驗證：模擬 iOS 忽略 `volume` 時，淡入 0→0.3（2.5s）、影片閃避、復原、背景淡出、循環交叉淡入的 gain 曲線都和桌面原行為一致；桌面截圖與請求清單不變。觸控裝置（`hover:none` 且 `pointer:coarse`）不再預載 bgm。**真機未測**。
   - [ ] 開啟「減少動態效果」：沒有打字動畫和擺動，內容完整。
   - [ ] 中階 Android 用 Chrome DevTools Performance 錄 10 秒捲動：沒有 >50ms 的 long task 連發，掉幀率 <5%。
 
