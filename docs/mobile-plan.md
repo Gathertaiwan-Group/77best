@@ -300,6 +300,22 @@ aspect = innerWidth / innerHeight
 - Vercel preview：`/m/**` Content-Type 正確、mp4 Range 回 206；直式、旋轉、強制參數、fallback、桌面一致性皆通過（僅 preview 工具列 `vercel.live/feedback.js` 造成的差異）。臨時 protection bypass 已撤銷，專案設定恢復原狀。
 - 仍待：子頁影片封面沿用 `/videos/*.webp`（與桌面共用的小圖，非 mp4）；真機（iPhone／Android／iPad）驗收見 Phase 4。
 
+### Phase 4 驗收與修正（2026-11-12）
+獨立驗收者列出 10 項問題，修正在 commit `611c342` fix(mobile): address phase 4 QA findings（分支 `fix-qa` 本機＋preview 驗證後 fast-forward 合併 main，分支已刪）。
+1. HuHuu「try it」與句子重疊（手機 16%／平板 10%）：`huhuu-try` 改 `mt: 22`，子頁所有手寫連結（try it／credits／join）下方加一層柔和墨色暈（`.m77-col>.m77-hot .m77-inner::before`），看得出是按鈕。geom：6 尺寸×9 子頁 0 重疊、0 過近。
+2. 固定返回箭頭／music 開關在淺色畫框上看不見：兩者都加模糊的深色膠囊暈（`rgba(26,20,14,.6)`＋blur）。對比（圖示筆畫 vs 底下背景 90 百分位）188 個取樣最低 1.40 → 4.17（正式站 4.22）。
+3. 橫式觸控翻頁門檻：主程式 `onRelease` 只在觸控（`touch*` 事件或 `pointerType=touch`）時改為「位移 ≥ 18% 視窗高，或速度 ≥ 400px/s 且位移 ≥ 20px」即翻；滾輪／觸控板路徑未動。844×390、932×430：半屏快滑、30% 快滑、20% 慢滑由「不翻」變「翻」，8–15px 輕觸與 15% 慢拖不翻；1024×768 同樣通過。
+4. contact「music off」疊白雲、「real.」貼雲：右上兩朵雲上移（y −7→−10、−1→−5）並右移；開關靠第 2 項的暈維持可讀（contact 取樣對比 ≥4.2）。
+5. about「a bigger world ✱」壓溪流：該行上移 2%，並修正 `ink` 只能整景設定的 bug（改為 `line.ink ?? scene.ink`），這行用 0.85。
+6. New York：`she` 與 `realized` 在 text.png 本來就疊在一起 → builder 新增 `isolate`（只合成指定字的字母 PNG），拆成 `ny-she`／`ny-1`；`ny-4` 前加大間距；meadow 子頁下半部加輕微暗化＋較深墨暈，固定背景的雛菊不再搶字。
+7. Chongqing：標題移到畫架下方當第一段（不再貼 music 開關、不壓橫木）；全螢幕鈕改到畫布左下（`fs: 'left'`），不再貼留聲機。
+8. 子頁橫向溢出（about 419、work 403、chongqing 397）：欄位外包一層全寬 `.m77-clipx{overflow-x:clip}`，scrollWidth = clientWidth（320／390 實測）。
+9. 首屏：`home-wide-1170.webp` 依版面表 `bg.quality.wide: 54` 重壓 307→246KB（放大比對目視無差）；黃花加 `fetchpriority=high`＋入口 head 預載。正式站首屏 390×844 416KB、820×1180 535KB（原 596KB）；黃花（LCP）開始下載 548ms→227ms，LCP 約 0.98s→0.51s（Fast 4G 模擬）。
+10. iPad 橫式 1024×768：實測「see a bigger world」完整，驗收時是打字動畫未完成；真正被切的是 ✱（右緣 1048px）與 work 末字（1032px）。評估改分流門檻 1.34：/m 在 4:3 橫式構圖過度放大、contact 字壓雲，不採用。改在主程式對 aspect < 1.45 的視窗，隨捲動位置只把 about／work 兩頁往左平移（最多 0.28×單邊裁切、≤56px，1.37–1.45 漸弱）；首頁與 contact 不動，螢幕↔設計座標換算（`W.vw`）同步，點擊熱字正常。1024×768 文字右緣 999／983px、左緣 ≥43px；16:9／16:10 平移為 0、transform 字串不變。
+- 桌面回歸（prefers-reduced-motion，1440×900、1280×800，4 景＋3 子頁）：preview 與正式站修改前截圖差異 0.000%，請求清單 260 筆完全相同。
+- 正式站（`77best.vercel.app`，READY）重驗：geom 54 頁 0 問題、swipe 同上、溢出 0、主流程（390／820）0 個 ≥400、0 console error、控制項對比最低 4.22。Vercel 臨時 protection bypass 已撤銷（`protectionBypass` = `{}`）。
+- 未驗：真機（iPhone／iPad／Android）手感與 Safari `overflow-x: clip`（需 iOS 16+）。
+
 ---
 
 ## 7. 需要使用者／業主決定或提供
