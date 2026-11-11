@@ -217,10 +217,10 @@ aspect = innerWidth / innerHeight
 - `index.html` 的 viewport 加 `viewport-fit=cover`。
 - 直式暫時頁（`#narrow`）升級：保留靜態圖，加上「轉成橫向觀看完整體驗」的手繪提示，加上 Work 5 件、About 2 件、LinkedIn/X/Instagram 的純連結清單（大字、44pt），讓直式使用者至少能找到作品和聯絡方式。
 - **驗收**
-  - [ ] Playwright：844×390、932×430、1024×768 載入主程式，`__pager` 存在，四頁和 9 個子頁都進得去並截圖。390×844、375×667 顯示升級後的暫時頁，連結全部 200。
-  - [ ] 真機 iPhone 橫拿：首頁到 contact 滑動翻頁正常；hackathon 影片 inline 播放；左上箭頭能點中（記錄點 10 次的命中次數，≥9/10）。
-  - [ ] 直式轉橫式時頁面 reload 後停在同一個 hash。
-  - [ ] 桌面 1440×900 行為和改版前截圖逐頁比對一致。
+  - [x] Playwright：844×390、932×430、1024×768 載入主程式，`__pager` 存在，四頁和 9 個子頁都進得去並截圖。390×844、375×667 顯示升級後的暫時頁，連結全部 200。（2026-11-11 自動驗證：四頁＋9 個子頁截圖，零 ≥400、零 console error；外連 LinkedIn 對 curl 回 999、hackathon 頁對 curl 回 429 屬防機器人，瀏覽器實開 200）
+  - [ ] （真機未測）真機 iPhone 橫拿：首頁到 contact 滑動翻頁正常；hackathon 影片 inline 播放；左上箭頭能點中（記錄點 10 次的命中次數，≥9/10）。
+  - [x] 直式轉橫式時頁面 reload 後停在同一個 hash。（Playwright setViewportSize 模擬，`#/work/huhuu` 保留；真機未測）
+  - [x] 桌面 1440×900 行為和改版前截圖逐頁比對一致。（另含 1280×800、1024×768；請求清單一致）
 
 ### Phase 1：行動版骨架 + 四個主場景（4–5 人日）
 - 寫 `extract-data.mjs`、`build-mobile-images.mjs`、`/m` app 殼（scroll-snap、場景元件、字母排版引擎、打字動畫、hotword）。
