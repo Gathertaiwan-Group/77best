@@ -226,11 +226,17 @@ aspect = innerWidth / innerHeight
 - 寫 `extract-data.mjs`、`build-mobile-images.mjs`、`/m` app 殼（scroll-snap、場景元件、字母排版引擎、打字動畫、hotword）。
 - 首頁、about、work、contact 四個場景，加上 word 層級版面表。
 - **驗收**
-  - [ ] 390×844、375×667、430×932 截圖：每個場景所有字母都在 safe area 內，沒有被切（自動檢查：每個字母 `getBoundingClientRect` 都落在 viewport 內）。
-  - [ ] 首屏傳輸 ≤ 600KB；Fast 4G + CPU 4x 下 LCP ≤ 2.5s（Playwright + CDP 量測，附 log）。
-  - [ ] about/work hotword 點擊會導到正確 hash；LinkedIn/X/Instagram 開新分頁到正確網址。
-  - [ ] 重跑 `extract-data.mjs` 後首頁名字自動更新（用目前的名字驗）。
-  - [ ] 真機 iOS Safari：snap 翻頁順暢，網址列收合時版面不跳。
+  - [x] 390×844、375×667、430×932 截圖：每個場景所有字母都在 safe area 內，沒有被切（自動檢查：每個字母 `getBoundingClientRect` 都落在 viewport 與 content box 內，行與行 AABB 重疊 <12%）。另加測 820×1180。**（2026-11-11 自動驗證，Playwright＋系統 Chrome，16/16 場景通過）**
+  - [x] 首屏傳輸 ≤ 600KB；Fast 4G + CPU 4x 下 LCP ≤ 2.5s（Playwright + CDP 量測，附 log）。**（自動驗證：首屏＝首景背景＋標題字母解碼完成前傳輸 448KB（手機）／579KB（820 平板）；LCP API 400–470ms、首屏完成 590–670ms；gzip 靜態伺服器模擬 Vercel）**
+  - [x] about/work hotword 點擊會導到正確 hash；LinkedIn/X/Instagram 開新分頁到正確網址。**（自動驗證；`#/about`、`#/work` 目前是 Phase 2 前的占位頁＋返回箭頭）**
+  - [x] 重跑 `extract-data.mjs` 後首頁名字自動更新（用目前的名字驗）。**（自動驗證：重跑輸出不變、名字取自 bundle＝Kiara；`tools/test-engine.mjs` 另測 4/5/6/8/11 字母名字在 4 種尺寸都排得進去）**
+  - [ ] 真機 iOS Safari：snap 翻頁順暢，網址列收合時版面不跳。**（真機未測；headless 以合成觸控滑動驗過 snap 一定停在場景邊界）**
+
+**Phase 1 實作紀錄（分支 `mobile-v1`）**
+- 工具：`tools/extract-data.mjs`（零依賴，產 `public/m/data.json`）、`tools/build-mobile-images.mjs`（sharp，產 `public/m/img/` 與 `manifest.json`）、`tools/test-engine.mjs`。`cd tools && npm i && npm run all` 一次重跑三者；產物要 commit（Vercel 不 build）。
+- 版面表：`public/m/layout.js`（場景裁切、word 層級版面、物件），app 與出圖腳本共用。word 以 `${page}-${NN}` 定址，不綁文字。
+- App：`public/m/app.js` 匯出 `mount(container, opts)`／`preload()`；`public/m/index.html` 是獨立測試頁。GSAP 3.15.1 core 在 `public/m/vendor/`。
+- 已知取捨：首景固定用 @2x 背景（DPR3 也一樣）以守首屏預算；LCP API 在 Chrome 把滿版背景圖排除，量到的 LCP 元素是花朵，所以另記「首屏完成」時間。
 
 ### Phase 2：子頁與影片（3–4 人日）
 - work 總覽、about 總覽、6 個影片子頁、dream-gallery。返回箭頭，瀏覽器上一頁。
