@@ -1,0 +1,19 @@
+{
+  "name": "77best-mobile-tools",
+  "version": "1.0.0",
+  "description": "Build tools for the portrait mobile module (public/m)",
+  "scripts": {
+    "extract": "node extract-data.mjs",
+    "images": "node build-mobile-images.mjs",
+    "test": "node --test test-engine.mjs",
+    "all": "node extract-data.mjs && node build-mobile-images.mjs && node --test test-engine.mjs"
+  },
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "gsap": "^3.15.1",
+    "sharp": "^0.35.5"
+  },
+  "private": true
+}

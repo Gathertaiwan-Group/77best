@@ -1,0 +1,199 @@
+{
+ "quality": 72,
+ "bg": {
+  "home": {
+   "tall": {
+    "aspect": 0.5,
+    "top": "#87add4",
+    "bottom": "#5a6543",
+    "files": {
+     "780": {
+      "url": "/m/img/home-tall-780.webp",
+      "w": 780,
+      "h": 1560,
+      "bytes": 198140
+     },
+     "1170": {
+      "url": "/m/img/home-tall-1170.webp",
+      "w": 1170,
+      "h": 2340,
+      "bytes": 313272
+     }
+    }
+   },
+   "wide": {
+    "aspect": 0.75,
+    "top": "#84a8c9",
+    "bottom": "#4b5a39",
+    "files": {
+     "1170": {
+      "url": "/m/img/home-wide-1170.webp",
+      "w": 1170,
+      "h": 1560,
+      "bytes": 314372
+     }
+    }
+   }
+  },
+  "about": {
+   "tall": {
+    "aspect": 0.5,
+    "top": "#4d5b3b",
+    "bottom": "#c2aeaf",
+    "files": {
+     "780": {
+      "url": "/m/img/about-tall-780.webp",
+      "w": 780,
+      "h": 1560,
+      "bytes": 201906
+     },
+     "1170": {
+      "url": "/m/img/about-tall-1170.webp",
+      "w": 1170,
+      "h": 2340,
+      "bytes": 320252
+     }
+    }
+   },
+   "wide": {
+    "aspect": 0.75,
+    "top": "#415232",
+    "bottom": "#ccb3b7",
+    "files": {
+     "1170": {
+      "url": "/m/img/about-wide-1170.webp",
+      "w": 1170,
+      "h": 1560,
+      "bytes": 281596
+     }
+    }
+   }
+  },
+  "work": {
+   "tall": {
+    "aspect": 0.5,
+    "top": "#808a7a",
+    "bottom": "#859c86",
+    "files": {
+     "780": {
+      "url": "/m/img/work-tall-780.webp",
+      "w": 780,
+      "h": 1560,
+      "bytes": 100822
+     },
+     "1170": {
+      "url": "/m/img/work-tall-1170.webp",
+      "w": 1170,
+      "h": 2340,
+      "bytes": 160088
+     }
+    }
+   },
+   "wide": {
+    "aspect": 0.75,
+    "top": "#9a978e",
+    "bottom": "#859c85",
+    "files": {
+     "1170": {
+      "url": "/m/img/work-wide-1170.webp",
+      "w": 1170,
+      "h": 1560,
+      "bytes": 134672
+     }
+    }
+   }
+  },
+  "contact": {
+   "tall": {
+    "aspect": 0.5,
+    "top": "#687d55",
+    "bottom": "#8d9078",
+    "files": {
+     "780": {
+      "url": "/m/img/contact-tall-780.webp",
+      "w": 780,
+      "h": 1560,
+      "bytes": 101472
+     },
+     "1170": {
+      "url": "/m/img/contact-tall-1170.webp",
+      "w": 1170,
+      "h": 2340,
+      "bytes": 155760
+     }
+    }
+   },
+   "wide": {
+    "aspect": 0.75,
+    "top": "#798867",
+    "bottom": "#999b86",
+    "files": {
+     "1170": {
+      "url": "/m/img/contact-wide-1170.webp",
+      "w": 1170,
+      "h": 1560,
+      "bytes": 153046
+     }
+    }
+   }
+  }
+ },
+ "objects": {
+  "flowers/white_flower.webp": {
+   "url": "/m/img/white_flower-380.webp",
+   "w": 380,
+   "h": 399,
+   "aspect": 0.9524,
+   "bytes": 23014
+  },
+  "flowers/yellow.webp": {
+   "url": "/m/img/yellow-313.webp",
+   "w": 313,
+   "h": 384,
+   "aspect": 0.8151,
+   "bytes": 16602
+  },
+  "flowers/daisy_bottom.webp": {
+   "url": "/m/img/daisy_bottom-287.webp",
+   "w": 287,
+   "h": 678,
+   "aspect": 0.4233,
+   "bytes": 25824
+  },
+  "flowers/peony_bottom.webp": {
+   "url": "/m/img/peony_bottom-279.webp",
+   "w": 279,
+   "h": 503,
+   "aspect": 0.5547,
+   "bytes": 15478
+  },
+  "flowers/rose.webp": {
+   "url": "/m/img/rose-430.webp",
+   "w": 430,
+   "h": 359,
+   "aspect": 1.1978,
+   "bytes": 17892
+  },
+  "elements/cloud1.webp": {
+   "url": "/m/img/cloud1-831.webp",
+   "w": 831,
+   "h": 360,
+   "aspect": 2.3083,
+   "bytes": 21294
+  },
+  "elements/cloud2.webp": {
+   "url": "/m/img/cloud2-920.webp",
+   "w": 920,
+   "h": 372,
+   "aspect": 2.4731,
+   "bytes": 18990
+  },
+  "elements/exit-door.webp": {
+   "url": "/m/img/exit-door-340.webp",
+   "w": 340,
+   "h": 710,
+   "aspect": 0.4789,
+   "bytes": 17840
+  }
+ }
+}
