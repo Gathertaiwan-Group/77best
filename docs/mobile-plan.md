@@ -293,6 +293,13 @@ aspect = innerWidth / innerHeight
   - [ ] 桌面版回歸截圖比對無差異。
   - [ ] 派一個沒參與實作的 agent 照本清單重驗一次（重要改動，>5 檔）。
 
+### 整合上線紀錄（2026-11-11）
+- 正式 commit：`1f90c5a` feat(mobile): route portrait visitors to /m mobile experience（分支 `mobile-v1` rebase 到 main 後 fast-forward 合併；主程式 `main-Cfy0tOib.js` 與 main 相同、含 `__wa`）。
+- 分流：入口 `index-B5WdSjKm.js` 沿用原檔名，判斷不變（aspect ≥ 1.3 載主程式；`?desktop=1`／`?mobile=1` 強制）。直式改為 `import('/m/app.js')` 後 `mount` 到新增的 `#m-root`（`setTitle`），桌面 DOM 由既有 `.is-narrow` 規則隱藏、主程式不載入；`#loader` 在掛載完成後移除。`/m` 載入或掛載失敗（例外或 8 秒逾時）才顯示 `#narrow` 暫時頁。`index.html` head 加一段 inline 判斷，只在直式時插入首景圖、`/m` 模組與 data/manifest 的 preload。旋轉跨門檻 reload（保留 hash）、全螢幕中不 reload（含 `/m` 影片的 `webkitDisplayingFullscreen`）沿用 Phase 0 邏輯。`/m/index.html` 保留為獨立測試頁。
+- 本機驗證（Playwright＋gzip 伺服器）：390×844／375×667／430×932／820×1180 直式開 `/` 皆為行動版，四景與 9 個子頁深連結正確；請求清單無 `main-*.js`、`/assets/bg/`、`/videos/*.mp4`、`/audio/`；`/` 與 `/m/index.html` 截圖差異 0–0.03%。首屏（Fast 4G＋CPU 4x）462–477KB（手機）／591KB（820 平板），首屏完成 0.64–0.71s。844×390、932×430、1024×768 觸控與 1440×900、1280×800 桌面：四主頁＋2 子頁截圖與改版前差異 0–0.04%、請求清單完全相同、無 `/m` 請求。旋轉雙向、全螢幕不 reload、強制參數、fallback（500 與逾時）皆通過；`tools/test-engine.mjs` 38/38；Phase 2/3 驗收腳本改指向 `/` 重跑通過（verify2 的 360×420 影片 IO 項為 Phase 2 起既有失敗，非本次造成）；零 console error、零 HTTP ≥400。
+- Vercel preview：`/m/**` Content-Type 正確、mp4 Range 回 206；直式、旋轉、強制參數、fallback、桌面一致性皆通過（僅 preview 工具列 `vercel.live/feedback.js` 造成的差異）。臨時 protection bypass 已撤銷，專案設定恢復原狀。
+- 仍待：子頁影片封面沿用 `/videos/*.webp`（與桌面共用的小圖，非 mp4）；真機（iPhone／Android／iPad）驗收見 Phase 4。
+
 ---
 
 ## 7. 需要使用者／業主決定或提供
