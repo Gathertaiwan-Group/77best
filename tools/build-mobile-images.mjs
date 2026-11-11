@@ -16,13 +16,13 @@ import sharp from 'sharp';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const PUB = join(ROOT, 'public');
 const OUT = join(PUB, 'm', 'img');
-const { SCENES, SUB, BG_WIDTHS, bgName, subBgName, pieceName, objName, objWidth } = await import(pathToFileURL(join(PUB, 'm', 'layout.js')).href);
+const { SCENES, SUB, BG_WIDTHS, MASK_WIDTHS, bgName, subBgName, pieceName, objName, objWidth } = await import(pathToFileURL(join(PUB, 'm', 'layout.js')).href);
 const data = JSON.parse(readFileSync(join(PUB, 'm', 'data.json'), 'utf8'));
 const subLetters = JSON.parse(readFileSync(join(ROOT, 'tools', 'sub-letters.json'), 'utf8')).pages; // from extract-data.mjs
 
 const QUALITY = Number(process.env.Q || 72);
 mkdirSync(OUT, { recursive: true });
-const manifest = { quality: QUALITY, bg: {}, objects: {}, sub: { bg: {}, pieces: {} } };
+const manifest = { quality: QUALITY, bg: {}, masks: {}, objects: {}, sub: { bg: {}, pieces: {} } };
 const kb = (n) => `${(n / 1024).toFixed(0)}KB`;
 const hex = (c) => '#' + c.map((v) => Math.round(v).toString(16).padStart(2, '0')).join('');
 
@@ -77,6 +77,24 @@ async function buildBg(id, bg, src, entry, nameOf) {
 
 for (const scene of SCENES) {
   await buildBg(scene.id, scene.bg, await sceneSource(scene), (manifest.bg[scene.id] = {}), (v, w) => bgName(scene, v, w));
+}
+// effect masks (Phase 3): greyscale desktop shader mask -> white + alpha, same crops as the background
+for (const scene of SCENES) {
+  if (!scene.bg.mask) continue;
+  const path = join(PUB, 'assets', scene.bg.mask);
+  const entry = (manifest.masks[scene.id] = {});
+  for (const variant of ['tall', 'wide']) {
+    const r = scene.bg[variant];
+    const width = MASK_WIDTHS[variant];
+    const { data: a, info } = await sharp(path).extract({ left: r.x, top: r.y, width: r.w, height: r.h }).resize({ width, kernel: 'lanczos3' }).greyscale().extractChannel(0).raw().toBuffer({ resolveWithObject: true });
+    const name = `mask-${scene.id}-${variant}-${width}.webp`;
+    const out = await sharp({ create: { width: info.width, height: info.height, channels: 3, background: { r: 255, g: 255, b: 255 } } })
+      .joinChannel(a, { raw: { width: info.width, height: info.height, channels: 1 } })
+      .webp({ quality: 60, alphaQuality: 70, effort: 6 })
+      .toFile(join(OUT, name));
+    entry[variant] = { url: `/m/img/${name}`, w: out.width, h: out.height, bytes: out.size };
+    console.log(`msk ${name.padEnd(28)} ${out.width}x${out.height} ${kb(out.size)}`);
+  }
 }
 for (const [name, bg] of Object.entries(SUB.bg)) {
   await buildBg(name, bg, await sceneSource({ bg }), (manifest.sub.bg[name] = {}), (v, w) => subBgName(name, v, w));

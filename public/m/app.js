@@ -1,4 +1,6 @@
-// walk with … — portrait mobile module (Phase 1: shell + four main scenes)
+// walk with … — portrait mobile module (Phase 1: shell + four main scenes;
+// Phase 2 sub pages in ./sub.js; Phase 3 motion in ./fx.js, music in ./music.js —
+// both loaded after the first screen)
 //
 // Usage (from any page):
 //   import { mount, preload } from '/m/app.js';
@@ -49,12 +51,11 @@ const CSS = `
 .m77-ready .m77-hot .m77-glow{animation:m77-breathe var(--period,3.6s) ease-in-out var(--delay,.4s) infinite}
 .m77-ready .m77-hot:not(.is-pressed) .m77-inner{animation:m77-breathe-scale var(--period,3.6s) ease-in-out var(--delay,.4s) infinite}
 @keyframes m77-sway{from{transform:rotate(calc(var(--amp,2) * -1deg))}to{transform:rotate(calc(var(--amp,2) * 1deg))}}
-@keyframes m77-float{0%,100%{transform:translate(0,0) rotate(0)}25%{transform:translate(var(--fx,18px),calc(var(--fy,8px) * -1)) rotate(var(--fr,.6deg))}50%{transform:translate(0,calc(var(--fy,8px) * -.4)) rotate(0)}75%{transform:translate(calc(var(--fx,18px) * -1),var(--fy,8px)) rotate(calc(var(--fr,.6deg) * -1))}}
 @keyframes m77-bob{0%,100%{transform:translate(-50%,0) rotate(-90deg)}50%{transform:translate(-50%,6px) rotate(-90deg)}}
 .m77-sway{animation:m77-sway var(--half,2.5s) ease-in-out infinite alternate}
-.m77-float{animation:m77-float var(--period,10s) ease-in-out infinite}
 .m77-hint{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 14px);width:44px;height:44px;padding:8px;border:0;background:none;transform:translate(-50%,0) rotate(-90deg);animation:m77-bob 2.4s ease-in-out infinite;opacity:.85;cursor:pointer}
 .m77-hint img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 0 4px rgba(22,38,18,.5))}
+.m77-hint{outline:none}.m77-hint:focus-visible img{filter:drop-shadow(0 0 6px rgba(255,247,205,.95)) drop-shadow(0 0 2px rgba(255,247,205,.95))}
 .m77-sub{position:absolute;inset:0;z-index:5;background:var(--theme,#1f3a1c);opacity:0;visibility:hidden;transition:opacity .35s ease,visibility 0s linear .35s}
 .m77-sub.is-open{opacity:1;visibility:visible;transition:opacity .35s ease}
 .m77-sub .m77-bg img{opacity:.45;filter:blur(2px) saturate(.9)}
@@ -73,7 +74,7 @@ function el(tag, attrs = {}, ...kids) {
   for (const [k, v] of Object.entries(attrs)) {
     if (v == null || v === false) continue;
     if (k === 'class') n.className = v;
-    else if (k === 'style') Object.assign(n.style, v);
+    else if (k === 'style') for (const [sk, sv] of Object.entries(v)) { if (sk.startsWith('--')) n.style.setProperty(sk, sv); else n.style[sk] = sv; }
     else if (k.startsWith('--')) n.style.setProperty(k, v);
     else n.setAttribute(k, v === true ? '' : v);
   }
@@ -99,7 +100,8 @@ function loadGsap() {
 
 function bgSrcset(scene, variant, manifest) {
   const files = manifest?.bg?.[scene.id]?.[variant]?.files;
-  return BG_WIDTHS[variant].map((w) => `${files?.[w]?.url ?? rel(`img/${bgName(scene, variant, w)}.webp`)} ${w}w`).join(', ');
+  // Save-Data / slow connection: only the @2x file
+  return BG_WIDTHS[variant].slice(0, saveData() ? 1 : undefined).map((w) => `${files?.[w]?.url ?? rel(`img/${bgName(scene, variant, w)}.webp`)} ${w}w`).join(', ');
 }
 /** The first (LCP) scene always uses the @2x file so the first screen stays inside budget. */
 function firstSrcset(scene, variant, manifest) {
@@ -130,7 +132,7 @@ export async function mount(container, opts = {}) {
   style.textContent = CSS;
   document.head.append(style);
 
-  const root = el('div', { class: 'm77', 'data-m77-root': '' });
+  const root = el('div', { class: 'm77', 'data-m77-root': '', role: 'main' });
   const scroller = el('div', { class: 'm77-scroller', tabindex: '-1' });
   root.append(scroller);
   container.append(root);
@@ -146,6 +148,7 @@ export async function mount(container, opts = {}) {
   if (opts.setTitle && data.name) document.title = `walk with ${data.name}`;
 
   const cleanups = [];
+  let destroyed = false;
   const on = (t, ev, fn, o) => { t.addEventListener(ev, fn, o); cleanups.push(() => t.removeEventListener(ev, fn, o)); };
 
   /* ---------- build scenes */
@@ -158,7 +161,7 @@ export async function mount(container, opts = {}) {
     st.textContent = SUB_CSS;
     document.head.append(st);
     cleanups.push(() => st.remove());
-    subs = createSubpages({ data, manifest, root, el, on, rel, still, saveData, hoverCfg, rgbMix, seed: [firstHash] });
+    subs = createSubpages({ data, manifest, root, el, on, rel, still, saveData, hoverCfg, rgbMix, seed: [firstHash], getGsap: () => window.gsap || null });
     return subs;
   }));
 
@@ -192,6 +195,7 @@ export async function mount(container, opts = {}) {
     // objects
     const objs = el('div', { class: 'm77-objects', 'aria-hidden': 'true' });
     const objImgs = [];
+    const objRefs = [];
     for (const o of spec.objects) {
       const mo = manifest?.objects?.[o.file];
       const [vy, vx] = o.anchor.split('-');
@@ -207,33 +211,11 @@ export async function mount(container, opts = {}) {
       const im = el('img', { alt: '', decoding: 'async', width: mo?.w, height: mo?.h, loading: first ? 'eager' : 'lazy' });
       im.dataset.src = mo?.url || `/assets/${o.file}`;
       if (o.filter) im.style.filter = o.filter;
-      if (!still && o.sway) {
-        im.classList.add('m77-sway');
-        im.style.setProperty('--amp', o.sway.amp);
-        im.style.setProperty('--half', `${o.sway.period / 2}s`);
-        im.style.transformOrigin = o.sway.origin || '50% 100%';
-        im.style.animationDelay = `${-Math.random() * o.sway.period}s`;
-      }
-      if (!still && (o.float || o.doorFloat)) {
-        const f = cfg.contact.float;
-        const rnd = (a) => a[0] + Math.random() * (a[1] - a[0]);
-        wrap.classList.add('m77-float');
-        if (o.doorFloat) {
-          wrap.style.setProperty('--fx', '0px');
-          wrap.style.setProperty('--fy', `${cfg.contact.doorFloat.y}px`);
-          wrap.style.setProperty('--fr', '0deg');
-          wrap.style.setProperty('--period', `${cfg.contact.doorFloat.period}s`);
-        } else {
-          wrap.style.setProperty('--fx', `${(rnd(f.x) * 0.5).toFixed(1)}px`);
-          wrap.style.setProperty('--fy', `${(rnd(f.y) * 0.5).toFixed(1)}px`);
-          wrap.style.setProperty('--fr', `${f.rotate}deg`);
-          wrap.style.setProperty('--period', `${rnd(f.period).toFixed(1)}s`);
-        }
-        wrap.style.animationDelay = `${-Math.random() * 8}s`;
-      }
+      // sway (flowers) and float (contact clouds / door) are driven by ./fx.js
       wrap.append(im);
       objs.append(wrap);
       objImgs.push(im);
+      objRefs.push({ spec: o, wrap, im });
     }
     node.append(objs);
 
@@ -246,21 +228,21 @@ export async function mount(container, opts = {}) {
     node.append(label, box);
 
     if (spec.hint) {
-      const hint = el('button', { class: 'm77-hint', type: 'button', 'aria-label': 'next' }, el('img', { alt: '', src: data.assets['assets/sub/arrow.png'] }));
+      const hint = el('button', { class: 'm77-hint', type: 'button', 'aria-label': 'next section' }, el('img', { alt: '', src: data.assets['assets/sub/arrow.png'] }));
       on(hint, 'click', () => goTo(index + 1));
       node.append(hint);
     }
     scroller.append(node);
 
     let loaded = false;
-    const load = () => {
+    let load = () => {
       if (loaded) return;
       loaded = true;
       setBg();
       for (const im of objImgs) im.src = im.dataset.src;
       for (const l of lines) for (const im of l.imgs) im.src = im.dataset.src;
     };
-    return { spec, index, node, box, img, lines, load, typed: false, typing: false };
+    return { spec, index, node, box, img, lines, objs: objRefs, isLoaded: () => loaded, get load() { return load; }, set load(f) { load = f; }, typed: false, typing: false };
   }
 
   function buildLine(spec, line, li) {
@@ -425,10 +407,10 @@ export async function mount(container, opts = {}) {
     scenes.forEach((s) => prefetchIO.observe(s.node));
     cleanups.push(() => prefetchIO.disconnect());
   };
-  // on save-data, still load a scene once it is actually reached
+  // on save-data, still load a scene once it is actually reached (not when it only touches the edge)
   const nearIO = new IntersectionObserver((entries) => {
-    for (const e of entries) if (e.isIntersecting) scenes.find((s) => s.node === e.target).load();
-  }, { root: scroller, rootMargin: '10% 0px' });
+    for (const e of entries) if (e.isIntersecting && e.intersectionRatio > 0) scenes.find((s) => s.node === e.target).load();
+  }, { root: scroller, threshold: [0, 0.01] });
   scenes.forEach((s) => nearIO.observe(s.node));
   cleanups.push(() => nearIO.disconnect());
 
@@ -436,7 +418,28 @@ export async function mount(container, opts = {}) {
   const firstBg = scenes[0].img;
   Promise.all([firstBg, ...scenes[0].lines.flatMap((l) => l.imgs)].map((im) => (im.complete && im.naturalWidth ? null : im.decode().catch(() => null))))
     .then(() => performance.mark?.('m77-first-screen'));
-  const afterFirst = () => setTimeout(() => (window.requestIdleCallback || setTimeout)(() => { startPrefetch(); if (!saveData()) setTimeout(getSubs, 1500); }), 300);
+  // Phase 3 modules come after the first screen: they never count against its budget
+  let fx = null, music = null;
+  const fxReady = { resolve: null };
+  const fxP = new Promise((r) => { fxReady.resolve = r; });
+  const startPhase3 = () => {
+    import('./music.js').then(({ createMusic }) => {
+      if (destroyed) return;
+      music = createMusic({ root, data, el, on, rel });
+      cleanups.push(() => music.destroy());
+      music.reveal();
+    }).catch((e) => console.warn('m77 music', e));
+    Promise.all([import('./fx.js'), gsapReady]).then(([{ createFx }, gsap]) => {
+      if (destroyed) return;
+      fx = createFx({ root, scroller, scenes, data, manifest, gsap: still ? null : gsap, still, lite: saveData(), on, el, rel });
+      cleanups.push(() => fx.destroy());
+      fxReady.resolve(fx);
+    }).catch((e) => console.warn('m77 fx', e));
+  };
+  const afterFirst = () => setTimeout(() => {
+    startPhase3();
+    (window.requestIdleCallback || setTimeout)(() => { startPrefetch(); if (!saveData()) setTimeout(getSubs, 1500); });
+  }, 300);
   if (firstBg.complete && firstBg.naturalWidth) afterFirst();
   else { firstBg.addEventListener('load', afterFirst, { once: true }); firstBg.addEventListener('error', afterFirst, { once: true }); }
 
@@ -454,6 +457,7 @@ export async function mount(container, opts = {}) {
     if (!subs && !SUB_RE.test(location.hash)) return; // main page, sub pages never opened
     const S = await getSubs();
     const id = S.route(location.hash);
+    fx?.refresh();
     // keep the main page under a sub page on its section, so "back" lands there
     const section = id ? S.sectionOf(location.hash) : null;
     if (section) {
@@ -485,7 +489,11 @@ export async function mount(container, opts = {}) {
     relayout: layoutAll,
     get subs() { return subs; },
     loadSubs: getSubs,
+    get fx() { return fx; },
+    fxReady: fxP,
+    get music() { return music; },
     destroy() {
+      destroyed = true;
       cleanups.forEach((f) => f());
       root.remove();
       style.remove();

@@ -270,10 +270,20 @@ aspect = innerWidth / innerHeight
 - Web Audio 音樂（行動版），並把同樣的 gain 修法 **patch 進主程式**，讓橫式 iPhone 也正確（兩處 `volume` 改成 gain，必須做 patch 前後比對）。
 - `prefers-reduced-motion`、Save-Data 分支，WebGL 條件開啟和自動降級。
 - **驗收**
-  - [ ] iPhone 真機：音樂淡入（錄影確認不是瞬間全音量）；播放影片時音樂閃避；切到背景時淡出。
+  - [ ] iPhone 真機：音樂淡入（錄影確認不是瞬間全音量）；播放影片時音樂閃避；切到背景時淡出。**（真機未測；headless Chrome 已驗：在 addInitScript 攔 AudioParam 排程並每 25ms 取樣 gain，行動版曲線與桌面一致——開啟淡入 0→0.3 2.47s（桌面 2.46s）、播影片 duck 0.35s 後暫停（桌面 0.35s）、暫停影片 restore 1.17–1.20s（桌面 1.20s）、離開子頁 restore 1.17s、分頁隱藏淡出 0.50s（桌面 0.48s）、回前景 1.20s（桌面 1.18s）、關閉 0.80s、循環交叉淡入 sine 3s 且總音量恆為 0.3；模擬 iOS（volume setter 無效）曲線相同；沒有 AudioContext 時退回 .volume 曲線也相同；開啟前 0 個音檔請求；localStorage `walk-with-kiara:music` 記憶有效）**
     - 主程式音量 patch（2026-11-11）：音樂與子頁影片的音量已改走 Web Audio GainNode（不支援時退回 `.volume`）。已自動驗證：模擬 iOS 忽略 `volume` 時，淡入 0→0.3（2.5s）、影片閃避、復原、背景淡出、循環交叉淡入的 gain 曲線都和桌面原行為一致；桌面截圖與請求清單不變。觸控裝置（`hover:none` 且 `pointer:coarse`）不再預載 bgm。**真機未測**。
-  - [ ] 開啟「減少動態效果」：沒有打字動畫和擺動，內容完整。
-  - [ ] 中階 Android 用 Chrome DevTools Performance 錄 10 秒捲動：沒有 >50ms 的 long task 連發，掉幀率 <5%。
+  - [x] 開啟「減少動態效果」：沒有打字動畫和擺動，內容完整。**（自動驗證：105/105 字母直接可見、不載 GSAP、花不擺、雲不漂、點擊無粒子、子頁無揭露動畫、無溪流光帶、執行中動畫 0 個；換景改淡入）**
+  - [ ] 中階 Android 用 Chrome DevTools Performance 錄 10 秒捲動：沒有 >50ms 的 long task 連發，掉幀率 <5%。**（真機未測；headless Chrome＋CPU 4x 以 CDP 觸控連續滑 10 秒、四景來回：long task >50ms 0 個、估算掉幀率 0%、p95 幀時間 16.7ms；JS heap 2.8–3.9MB；已解碼圖片估算 14.8MB（390）／23.8MB（820）。headless 的 rAF 不能代表真機 GPU，仍需真機錄）**
+  - [x] 補充自動驗證（390×844／375×667／820×1180）：首頁 5 朵花依 `flowers.overrides` 擺動＋陣風、白花慢轉；觸點光斑每次 pointerdown 出現並 0.4s 淡出；點空白處 pollen 6–8 顆（低階機 4–6）＋附近花朵漣漪；contact 雲與門進場滑入＋漂浮；字母捲離時 scatter、回來時 gather；子頁手寫圖以「沿基線揭露」代替逐字打字；場景離開視窗（或被子頁蓋住）時 ticker 停、CSS 動畫暫停、溪流光帶暫停；長按 750ms 等同點擊、contextmenu 已攔、`-webkit-touch-callout:none`／`user-select:none`；Save-Data：不預抓下一景、只抓 @2x、無粒子、影片顯示「tap to load」；效能看門狗：平均幀時間 >22ms 關閉擺動與粒子，同分頁 session 內重整仍維持關閉；axe-core 0 違規、可聚焦元素皆有名稱、Tab 順序可見焦點；文字型元素（tap to load、full screen）最差情況對比 7.6:1／6.5:1；首屏傳輸仍 469KB（手機）／583KB（820 平板）、首屏完成 0.64–0.69s（Fast 4G＋CPU 4x）；Lighthouse mobile Performance 91／Accessibility 100（Phase 2 為 88／100）；Phase 1／2 回歸全過、零 console error、零 HTTP ≥400。
+
+**Phase 3 實作紀錄（分支 `mobile-v1`）**
+- 新模組都在首屏之後才 `import()`，不佔首屏預算：`public/m/fx.js`（動效）、`public/m/music.js`（音樂）。`app.js` 只負責載入與把場景物件交給 fx。
+- 動效一律由 GSAP ticker 的**時間**驅動（iOS 低耗電 30fps 時只是變不順、不會變慢），只動 transform／opacity。花朵公式照桌面：`amp·sin(2πt/period+phase) + amp·slowWaveAmp·sin(…/(period·slowWavePeriod))` 加陣風（`wind`）與點擊彈簧（`flowers.click.spring`，以 60Hz 固定步長積分）；雲用桌面的 `sin(a)`、`sin(.77a+1.3)`、`sin(.61a+.4)` 漂浮，進場用 `contact.enter`；位移量依場景縮放（場景高／裁切高）換算。
+- 溪流：`tools/build-mobile-images.mjs` 把 `stream_mask` 依 about 背景同樣裁切轉成 alpha 遮罩（`/m/img/mask-about-{tall|wide}-*.webp`，約 10KB），fx 疊兩層慢速平移的 `repeating-linear-gradient` 光帶（方向取 `shaders.stream.direction`），只在 about 在畫面上時跑。首頁飛燕草不在直式裁切範圍內，省略。WebGL 手機一律不開。
+- 音樂：預設關；開關沿用桌面 `music on/off` 手寫圖（右上 safe-area 內，熱區 134×48），圖在首屏後才載。AudioContext 在開關的手勢裡同步建立＋resume，`MediaElementSource → 交叉淡入 Gain → 主 Gain`；所有淡入淡出排在 AudioParam 上（音訊時鐘，背景分頁也會完成），線性同桌面 `ease:none`；循環用 `setValueCurveAtTime` 的 sine.inOut。`/m/audio/bgm.m4a` 為 64kbps AAC（1.39MB，ffmpeg aac_at 由 `public/audio/bgm.m4a` 轉出），不支援時用桌面 mp3。記憶 key 與桌面共用；設定為 on 時下次在第一次手勢才開始播放。
+- 主程式（橫式）的 gain 修法已在主 repo 另案完成（`__wa`），本分支不動 `public/assets/`。
+- 子頁手寫字是整張 `text.png` 的裁切，無法逐字打：改成依閱讀順序「沿字的基線揭露」（裁切框與內容反向平移，純 transform），再次進入時加速（`repeatSpeed`）。同時把每頁手寫內容寫進 `layout.js` 的 `text`，給讀屏軟體。
+- 修正：`el()` 的 style 物件原本不吃 CSS 自訂屬性（Phase 1/2 的 `--rise`、`--shade-*` 等沒生效），已修；Save-Data 時 nearIO 原本因「貼邊也算相交」會預抓下一景，已改成實際進入才載。
 
 ### Phase 4：效能和真機總驗收（2 人日）
 - **驗收**

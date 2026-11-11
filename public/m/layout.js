@@ -58,6 +58,9 @@ export const SCENES = [
     theme: '#26381f',
     bg: {
       src: 'bg/bg_s2.webp',
+      // Phase 3: the desktop stream shader's mask, cropped like the background and
+      // turned into an alpha mask for the CSS light band (fx.js)
+      mask: 'bg/stream_mask.webp',
       tall: { x: 930, y: 0, w: 906, h: 1812 },
       wide: { x: 600, y: 0, w: 1359, h: 1812 },
       position: '50% 50%',
@@ -124,6 +127,8 @@ export const SCENES = [
 /** Output name of a scene background (no extension). */
 export const bgName = (scene, variant, width) => `${scene.id}-${variant}-${width}`;
 export const BG_WIDTHS = { tall: [780, 1170], wide: [1170] };
+/** Effect masks are soft (blurred): a small file is enough. */
+export const MASK_WIDTHS = { tall: 300, wide: 450 };
 
 /** Output name of an object image, sized for its largest CSS width × 2. */
 export const objName = (file, width) => `${file.replace(/^.*\//, '').replace(/\.\w+$/, '')}-${width}`;
@@ -143,7 +148,8 @@ export const objWidth = (o, origW) => Math.min(origW, Math.ceil(o.maxW * 2));
  *    labels). `src` = 'static' (the page's text.png) or a hot id; `words` (ids
  *    from tools/sub-letters.json) limits the crop to those words' bounding box.
  *    maxW = largest CSS width (px) the piece is shown at (output = ×2).
- *  - pages: blocks in reading order. w = % of the content column, x = inset (%)
+ *  - pages: `text` = the words of the hand-written pieces (read out instead of the images).
+ *    blocks in reading order. w = % of the content column, x = inset (%)
  *    from the aligned side, mt = margin-top (px at 390 wide, scales with width),
  *    rotate in deg. `hot` makes the piece the page's link (data `link` / `route`).
  */
@@ -205,6 +211,7 @@ export const SUB = {
     work: { kind: 'work', bg: 'curtain' },
     hackathon: {
       kind: 'video', bg: 'curtain', easel: 'portrait',
+      text: 'Hackathon winner.', // what the hand-written pieces say (screen readers)
       blocks: [
         { piece: 'hackathon-title', w: 90, align: 'center', mt: 14, rotate: -2 },
         { piece: 'hackathon-credits', hot: 'credits', w: 60, align: 'center', mt: 14, rotate: 1 },
@@ -212,6 +219,7 @@ export const SUB = {
     },
     huhuu: {
       kind: 'video', bg: 'curtain', easel: 'portrait',
+      text: 'App: HuHuu. Bedtime audio based on your mood.', // what the hand-written pieces say (screen readers)
       blocks: [
         { piece: 'huhuu-text', w: 68, align: 'left', x: 8, mt: 14, rotate: -2 },
         { piece: 'huhuu-try', hot: 'try-it', w: 44, align: 'right', x: 10, mt: -6, rotate: 2 },
@@ -219,6 +227,7 @@ export const SUB = {
     },
     bedazzling: {
       kind: 'video', bg: 'curtain', easel: 'portrait',
+      text: 'Bedazzling: bedazzle anything you like.', // what the hand-written pieces say (screen readers)
       blocks: [
         { piece: 'bedazzling-text', w: 74, align: 'left', x: 6, mt: 14, rotate: -2 },
         { piece: 'bedazzling-try', hot: 'try-it', w: 54, align: 'right', x: 6, mt: 16, rotate: 2 },
@@ -226,6 +235,7 @@ export const SUB = {
     },
     'mist-story': {
       kind: 'video', bg: 'curtain', easel: 'portrait',
+      text: 'Mist-story: draw on your mist canvas.', // what the hand-written pieces say (screen readers)
       blocks: [
         { piece: 'mist-story-text', w: 74, align: 'left', x: 6, mt: 14, rotate: -2 },
         { piece: 'mist-story-try', hot: 'try-it', w: 54, align: 'right', x: 6, mt: 16, rotate: 2 },
@@ -233,6 +243,7 @@ export const SUB = {
     },
     'dream-gallery': {
       kind: 'video', bg: 'curtain', easel: 'portrait', onCanvas: { piece: 'dream-soon', w: 62 },
+      text: 'Dream gallery. Coming soon…', // what the hand-written pieces say (screen readers)
       blocks: [
         { piece: 'dream-title', w: 50, align: 'left', x: 6, mt: 10, rotate: -3 },
         { piece: 'dream-join', hot: 'join-event', w: 34, align: 'right', x: 4, mt: -96, rotate: 3 },
@@ -240,6 +251,7 @@ export const SUB = {
     },
     chongqing: {
       kind: 'video', bg: 'meadow', easel: 'landscape',
+      text: 'Chongqing is where she found her love for documenting.', // what the hand-written pieces say (screen readers)
       // pieces / objects laid over the easel box (% of the easel image)
       over: [
         { piece: 'cq-title', top: 2.5, right: 0, w: 44, rotate: -3 },
@@ -253,6 +265,7 @@ export const SUB = {
     },
     'new-york': {
       kind: 'video', bg: 'meadow', easel: 'landscape',
+      text: 'And she realized who she wants to be in New York…', // what the hand-written pieces say (screen readers)
       over: [
         { object: 'elements/kite2.webp', top: 2, right: 3, w: 19, rotate: 92.2, flip: true, float: true },
       ],

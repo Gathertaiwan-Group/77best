@@ -138,6 +138,22 @@
    }
   }
  },
+ "masks": {
+  "about": {
+   "tall": {
+    "url": "/m/img/mask-about-tall-300.webp",
+    "w": 300,
+    "h": 600,
+    "bytes": 10046
+   },
+   "wide": {
+    "url": "/m/img/mask-about-wide-450.webp",
+    "w": 450,
+    "h": 600,
+    "bytes": 12300
+   }
+  }
+ },
  "objects": {
   "flowers/white_flower.webp": {
    "url": "/m/img/white_flower-380.webp",

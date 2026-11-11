@@ -52,14 +52,14 @@ export const SUB_CSS = `
 .m77-vplay svg{display:block;width:100%;height:100%}
 .m77-vbtn:active .m77-vplay{scale:1.12}
 .m77-vbtn[data-state=playing] .m77-vplay,.m77-vbtn[data-state=loading] .m77-vplay{opacity:0}
-.m77-vlite{position:absolute;left:0;right:0;bottom:12%;text-align:center;font:600 13px/1.2 system-ui,sans-serif;letter-spacing:.04em;color:#fff;text-shadow:0 0 6px rgba(30,20,10,.8);pointer-events:none}
+.m77-vlite{position:absolute;left:50%;bottom:10%;translate:-50% 0;padding:5px 11px;border-radius:999px;background:rgba(30,22,15,.74);text-align:center;font:600 13px/1.2 system-ui,sans-serif;letter-spacing:.04em;color:#fff;white-space:nowrap;pointer-events:none}
 .m77-vbtn[data-state=playing] .m77-vlite,.m77-vbtn[data-state=loading] .m77-vlite{opacity:0}
 .m77-vspin{position:absolute;left:50%;top:50%;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;border:2.5px solid rgba(255,255,255,.25);border-top-color:rgba(255,255,255,.9);opacity:0;pointer-events:none;animation:m77-spin 1s linear infinite;transition:opacity .2s}
 .m77-vbtn[data-state=loading] .m77-vspin{opacity:1;transition-delay:.25s}
 @keyframes m77-spin{to{transform:rotate(360deg)}}
 .m77-vtex{position:absolute;inset:0;overflow:hidden;pointer-events:none;mix-blend-mode:multiply;opacity:var(--tex,.25)}
 .m77-vtex img{position:absolute;max-width:none}
-.m77-fs{position:absolute;display:flex;align-items:center;gap:6px;height:44px;min-width:44px;padding:0 12px 0 8px;border:0;border-radius:22px;background:rgba(43,36,29,.42);color:#fff;font:600 13px/1 system-ui,sans-serif;letter-spacing:.03em;cursor:pointer;touch-action:manipulation;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);outline:none}
+.m77-fs{position:absolute;display:flex;align-items:center;gap:6px;height:44px;min-width:44px;padding:0 12px 0 8px;border:0;border-radius:22px;background:rgba(43,36,29,.74);color:#fff;font:600 13px/1 system-ui,sans-serif;letter-spacing:.03em;cursor:pointer;touch-action:manipulation;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);outline:none}
 .m77-fs svg{width:26px;height:26px;filter:drop-shadow(0 0 2px rgba(30,20,10,.5))}
 .m77-fs:focus-visible{box-shadow:0 0 0 3px rgba(255,247,205,.9)}
 .m77-fs:active{scale:1.06}
@@ -68,6 +68,9 @@ export const SUB_CSS = `
 .m77-ground img{filter:drop-shadow(0 8px 6px rgba(22,40,16,.55))}
 .m77-oncanvas{position:absolute;left:50%;top:50%;translate:-50% -50%;pointer-events:none;filter:drop-shadow(0 0 3px rgba(90,70,50,.45))}
 .m77-oncanvas img{display:block;width:100%;height:auto;filter:brightness(.55) sepia(.35)}
+.m77-wipe,.m77-wipe-m{display:block;overflow:hidden}
+.m77-wipe-m{overflow:visible}
+.m77-wipe img{display:block;width:100%;height:auto}
 /* work overview */
 .m77-groups{position:relative}
 .m77-group{position:relative;display:block;text-decoration:none;color:inherit;outline:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
@@ -113,6 +116,7 @@ export const SUB_CSS = `
  */
 export function createSubpages(ctx) {
   const { data, manifest, root, el, on, rel, still, saveData, hoverCfg, rgbMix } = ctx;
+  const getGsap = ctx.getGsap || (() => window.gsap || null);
   const pages = data.subpages.pages;
   const byRoute = new Map(Object.values(pages).map((p) => [p.route, p]));
   const links = data.config.links;
@@ -171,6 +175,7 @@ export function createSubpages(ctx) {
   }
   function objImg(file, list, sizes) {
     const mo = manifest?.objects?.[file];
+    if (lite && mo?.small) return lazyImg({ src: mo.small.url, width: mo?.w, height: mo?.h }, list);
     return lazyImg({ src: mo?.url || `/assets/${file}`, srcset: mo?.srcset, sizes: mo?.srcset ? sizes : null, width: mo?.w, height: mo?.h }, list);
   }
   function pieceImg(id, list) {
@@ -201,7 +206,7 @@ export function createSubpages(ctx) {
     node.style.setProperty('--ink-rgb', ink);
     if (m.bg === 'curtain') { node.style.setProperty('--ink-a', '.6'); node.style.setProperty('--ink-b', '.45'); }
     if (bgm) node.style.setProperty('--bgfill', `linear-gradient(180deg, ${bgm.tall.top}, ${bgm.tall.bottom})`);
-    const srcset = (variant) => BG_WIDTHS[variant].map((w) => `${bgm?.[variant]?.files?.[w]?.url ?? rel(`img/${subBgName(m.bg, variant, w)}.webp`)} ${w}w`).join(', ');
+    const srcset = (variant) => BG_WIDTHS[variant].slice(0, lite ? 1 : undefined).map((w) => `${bgm?.[variant]?.files?.[w]?.url ?? rel(`img/${subBgName(m.bg, variant, w)}.webp`)} ${w}w`).join(', ');
     const bimg = lazyImg({ srcset: srcset('tall'), sizes: '100vw' }, imgs);
     const bsrc = el('source', { media: WIDE_MQ, sizes: '100vw' });
     bsrc.dataset.srcset = srcset('wide');
@@ -221,7 +226,38 @@ export function createSubpages(ctx) {
         if (im.dataset.src) { im.src = im.dataset.src; delete im.dataset.src; }
       }
     };
-    return { id: spec.id, spec, m, node, scroller, col, back, title, imgs, load, videos: [], enter() {}, leave() {}, layout() {} };
+    return { id: spec.id, spec, m, node, scroller, col, back, title, imgs, load, videos: [], wipes: [], visits: 0, enter() {}, leave() {}, layout() {} };
+  }
+
+  /* ---------------------------------------------------------- hand-writing reveal
+   * The sub page text is a whole hand-written image (text.png crops), so it cannot be
+   * typed letter by letter like the main scenes. Instead each piece is revealed by a
+   * wipe along its own baseline (a clip box whose mover and content slide in opposite
+   * directions: transforms only), in reading order, when the page is entered. */
+  function wipe(P, im, label) {
+    const m = el('span', { class: 'm77-wipe-m' }, im);
+    const w = el('span', { class: 'm77-wipe' }, m);
+    P.wipes.push({ w, m, im, label });
+    return w;
+  }
+  function reveal(P) {
+    const gsap = getGsap();
+    P.visits++;
+    if (still || !gsap || !P.wipes.length) return;
+    const speed = P.visits > 1 ? data.config.text.typing.repeatSpeed || 2 : 1;
+    const tl = gsap.timeline({ delay: 0.25 / speed });
+    let t = 0;
+    for (const x of P.wipes) {
+      gsap.killTweensOf([x.m, x.im]);
+      const wpx = x.w.getBoundingClientRect().width || 200;
+      // ~ the small typing speed: one hand-written letter ≈ 22px, 0.042s
+      const d = Math.min(1.5, Math.max(0.45, (wpx / 22) * data.config.text.typing.small.letter * 1.15)) / speed;
+      tl.fromTo(x.m, { xPercent: -101 }, { xPercent: 0, duration: d, ease: 'power1.inOut' }, t);
+      tl.fromTo(x.im, { xPercent: 101, opacity: 0.2 }, { xPercent: 0, opacity: 1, duration: d, ease: 'power1.inOut' }, t);
+      t += d * (x.label ? 0.55 : 0.8);
+    }
+    tl.eventCallback('onComplete', () => gsap.set(P.wipes.flatMap((x) => [x.m, x.im]), { clearProps: 'transform,opacity' }));
+    P.revealTl = tl;
   }
 
   /* ---------------------------------------------------------- pieces */
@@ -233,13 +269,13 @@ export function createSubpages(ctx) {
       const a = el('a', { class: 'm77-pc m77-hot m77-ph m77-ink', href, target: h.link ? '_blank' : null, rel: h.link ? 'noopener' : null, 'aria-label': h.label, 'data-hot': h.id });
       hotVars(a, hoverCfg.glowColor, 1);
       const inner = el('span', { class: 'm77-inner' });
-      inner.append(el('span', { class: 'm77-glow' }), im);
+      inner.append(el('span', { class: 'm77-glow' }), wipe(P, im, true));
       a.append(inner);
       blockStyle(a, b);
       bindPress(a, h.link ? null : h.route);
       return a;
     }
-    const d = el('div', { class: 'm77-pc m77-ink', 'aria-hidden': 'true' }, im);
+    const d = el('div', { class: 'm77-pc m77-ink', 'aria-hidden': 'true' }, wipe(P, im));
     blockStyle(d, b);
     return d;
   }
@@ -390,11 +426,15 @@ export function createSubpages(ctx) {
     const P = shell(spec, m);
     const e = easel(P, m.easel);
     P.col.classList.add(`is-${m.easel}`);
-    if (m.easel === 'landscape') P.col.style.paddingTop = 'calc(env(safe-area-inset-top,0px) + 6px)';
+    // landscape easels are full width: start below the music toggle (top right)
+    if (m.easel === 'landscape') P.col.style.paddingTop = 'calc(env(safe-area-inset-top,0px) + 50px)';
     else P.col.style.paddingTop = 'calc(env(safe-area-inset-top,0px) + 30px)';
     P.col.append(e.wrap);
     for (const b of m.blocks) P.col.append(piece(P, b));
-    P.title.textContent = spec.hot?.[0]?.label?.replace(/ \(opens.*$/, '') || spec.id;
+    // the hand-written text is an image: its words go to the heading (+ a hidden paragraph)
+    const [head, ...rest] = (m.text || '').split(/(?<=\.) /);
+    P.title.textContent = head || spec.hot?.[0]?.label?.replace(/ \(opens.*$/, '') || spec.id;
+    if (rest.length) P.title.after(el('p', { class: 'm77-vh' }, rest.join(' ')));
     if (P.videos.length) {
       const io = new IntersectionObserver((entries) => {
         for (const en of entries) {
@@ -404,7 +444,8 @@ export function createSubpages(ctx) {
       }, { root: P.scroller, threshold: [0, 0.3] });
       P.videos.forEach((api) => io.observe(api.btn));
     }
-    P.leave = () => P.videos.forEach((api) => api.stop());
+    P.enter = (dir) => { if (dir !== 'up') reveal(P); };
+    P.leave = () => { P.videos.forEach((api) => api.stop()); P.revealTl?.progress(1); };
     P.load = ((load) => () => { load(); if (P.tex) P.tex.src = e.img.currentSrc || e.img.src || e.img.dataset.src || ''; })(P.load);
     if (P.tex) on(e.img, 'load', () => { P.tex.src = e.img.currentSrc || e.img.src; });
     return P;
@@ -524,8 +565,9 @@ export function createSubpages(ctx) {
       const s = el('span', { class: 'm77-hot m77-ink' });
       Object.assign(s.style, st);
       const inner = el('span', { class: 'm77-inner', style: { position: 'relative', inset: 'auto', display: 'block' } });
-      inner.append(el('span', { class: 'm77-glow' }), pieceImg(id, P.imgs));
-      inner.querySelector('img').style.cssText = 'display:block;width:100%;height:auto';
+      const im = pieceImg(id, P.imgs);
+      im.style.cssText = 'display:block;width:100%;height:auto';
+      inner.append(el('span', { class: 'm77-glow' }), wipe(P, im, true));
       s.append(inner);
       return s;
     };
@@ -544,7 +586,7 @@ export function createSubpages(ctx) {
     if (still) candle.style.animation = 'none';
     lw.append(candle);
     const g1 = group('chongqing', 0, [
-      apart(pieceImg('about-from', P.imgs), { left: '8%', top: '0', width: '20%', maxWidth: '110px' }, 'm77-apart m77-ink'),
+      apart(wipe(P, pieceImg('about-from', P.imgs)), { left: '8%', top: '0', width: '20%', maxWidth: '110px' }, 'm77-apart m77-ink'),
       label('about-chongqing', { left: '0', top: '15%', width: '68%', maxWidth: '400px' }),
       lw,
     ]);
@@ -553,12 +595,14 @@ export function createSubpages(ctx) {
     // New York: gramophone + "to New York ☺"
     const g2 = group('new-york', 1, [
       apart(objImg('elements/gramophone.webp', P.imgs), { left: '4%', top: '18%', width: '28%', maxWidth: '170px' }, 'm77-apart m77-ground'),
-      apart(pieceImg('about-to', P.imgs), { left: '40%', top: '0', width: '11%', maxWidth: '70px' }, 'm77-apart m77-ink'),
+      apart(wipe(P, pieceImg('about-to', P.imgs)), { left: '40%', top: '0', width: '11%', maxWidth: '70px' }, 'm77-apart m77-ink'),
       label('about-new-york', { right: '0', top: '22%', width: '60%', maxWidth: '330px' }),
     ]);
     g2.style.height = 'min(44vw, 320px)';
     g2.style.minHeight = '160px';
     P.col.append(g1, g2);
+    P.enter = (dir) => { if (dir !== 'up') reveal(P); };
+    P.leave = () => P.revealTl?.progress(1);
     return P;
   }
 
