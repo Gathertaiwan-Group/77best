@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>walk with Zilin</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <script type="module" crossorigin src="/assets/index-B5WdSjKm.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-BA3eJcEA.css">
+  </head>
+  <body>
+    <div id="contact" class="contact" aria-label="Contact">
+      <div class="contact__frame frame">
+        <img class="contact__bg" alt="" decoding="async" />
+        <div class="layer" id="contact-objects"></div>
+        <div class="layer" id="contact-text"></div>
+      </div>
+    </div>
+
+    <div id="scroller" class="scroller">
+      <main id="world" class="world frame">
+        <div class="layer layer--bg" id="layer-bg"></div>
+        <!-- multiply backings under light-background keywords: outside the transformed text
+             groups so the blend reaches the painting -->
+        <div class="layer" id="layer-backing"></div>
+        <div class="layer layer--text" id="layer-text"></div>
+        <div class="layer layer--flowers" id="layer-flowers"></div>
+      </main>
+    </div>
+
+    <!-- Contact's corner clouds float above the world (and the leaving ribbons), below the cursor -->
+    <div id="contact-top" class="contact contact--top" aria-hidden="true">
+      <div class="contact__frame frame"><div class="layer" id="contact-clouds"></div></div>
+    </div>
+
+    <!-- sub-pages (SPEC §9), above everything but the cursor -->
+    <div id="subpages" class="subpages"></div>
+
+    <!-- loading cover (SPEC §11): moss green until the first screen's images are in -->
+    <div id="loader" class="loader" aria-hidden="true"></div>
+
+    <!-- narrower than 1024px (SPEC §0): a still of the home page instead of the site -->
+    <div id="narrow" class="narrow" hidden>
+      <img data-src="/assets/narrow.webp" alt="walk with Zilin" />
+      <p>best viewed on desktop</p>
+    </div>
+
+  </body>
+</html>
